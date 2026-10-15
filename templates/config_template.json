@@ -1,0 +1,20 @@
+{
+    "platform": "Amazon",
+    "automation_tool": "n8n",
+    "storage": "Google Sheets",
+    "workflow_description": "It get's keywords from a sheet form a google sheet. Searches Amazon using the API. For each keyword it builds a sheet and stores the items listed in the first page. So that means it must remove items that were listed before and not currently; add new rows that weren't listed before",
+    "scrapehero": {
+        "api_selection": "Amazon Search API",
+        "unique_identifier": "keyword",
+        "node_parameters": {
+            "apiSelection": "Amazon Search API",
+            "textInput": "{{ $json.query }}",
+            "countryCode": "US",
+            "pages": 4
+        },
+        "api_json_output_file": "sample_api_output.json"
+    },
+    "business_benefits": [ "write the business benefits yourself"
+    ],
+    "seo_suggestions_file": "seo_suggestions.md"
+}
