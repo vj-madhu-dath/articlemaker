@@ -50,7 +50,6 @@ Thumbs.db
 
 # Project specific
 output/
-articles/
 memory/
 *.log
 
@@ -71,3 +70,10 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
+# Browser Profile & Videos
+.n8n_browser_profile/
+*.mp4
+*.mov
+*.webm
+*.avi
+*.mkv

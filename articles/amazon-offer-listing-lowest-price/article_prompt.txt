@@ -1,0 +1,485 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article in a **tutorial style** based on the provided configuration and reference workflow.
+
+### Tone & Style Guide
+- **Practical Mentor:** Conversational, hands-on senior engineer walkthrough.
+- **Pronoun Rules:**
+  - Never use "we" in the tutorial, explanation, or overview sections. Use phrasing like "this guide shows", "this workflow uses", or imperative steps.
+  - Never use "you will learn".
+  - DO use "we" ONLY in the final CTA paragraph when referencing ScrapeHero's enterprise data services.
+- **Tone & Language to Avoid:**
+  - Avoid fluff, buzzwords, and academic lecturing.
+  - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to...").
+- **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
+- **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
+- **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
+- **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
+
+### Mandatory Article Structure
+1.  **Title & Metadata:**
+    - H1 Title: `# How to [Action/Goal] With n8n and ScrapeHero`
+    - Bold metadata lines directly below H1 (do NOT use YAML `---` blocks):
+      `**SEO title:** [Title with brackets or primary keyword]`
+      `**Meta description:** [Active voice description under 160 characters]`
+      `**Category:** ScrapeHero Cloud Resources > n8n`
+2.  **Table of Contents:**
+    - Heading: `#### Table of contents`
+    - Flat bulleted list linking only to the top-level H2 (`##`) sections. Do not list H3 step subsections.
+3.  **Introduction:** Exactly two paragraphs.
+    - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
+    - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.
+4.  **Key Takeaways:**
+    - Heading: `### Key Takeaways` immediately following the intro numbered list.
+    - 5-6 practical takeaway bullet points.
+5.  **Before You Begin:**
+    - Prerequisites list/table (n8n instance, credentials, input data source, ScrapeHero API key).
+    - Sample markdown tables showing the required Google Sheet or database structure (headers and sample row). If using separate tabs (e.g. input queries vs output results), provide distinct tables for both tabs.
+6.  **Workflow Construction (Dynamic Multi-Phase Grouping):**
+    Organize the steps based on the workflow's architecture:
+    - **For Linear Pipelines (Extract -> Transform -> Load)**: Organize into 4 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Reading input data, Loop node, ScrapeHero node with Pin Data tip).
+        * For ScrapeHero node: Specify dedicated `n8n-nodes-scrapehero.scrapeHero` community node. Provide the standard 8-step credential setup:
+          1. Go to app.scrapehero.com -> 2. Sign in -> 3. Profile icon -> 4. Open API Key -> 5. Copy key -> 6. Return to n8n -> 7. Paste key -> 8. Save credentials.
+      - **Phase 2: `## [Transformation Phase]`** (Split Out, Edit Fields with markdown mapping table, Filter, Sort, in-step type parsing).
+      - **Phase 3: `## [Destination Phase]`** (Append/Update, target mapping, matching keys, Execute Once).
+      - **Phase 4: `## Test and Complete the Loop`** (Loopback wiring, test checklist).
+    - **For Two-Way Sync / Diff Workflows (Extract -> Format -> Read Existing -> Merge -> Upsert -> Delete)**: Organize into 3 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Input Source, Loop, ScrapeHero node with 8-step credential walkthrough and Pin Data tip, Split Out, Edit Fields with markdown mapping table).
+      - **Phase 2: `## [Compare & Sync Phase]`** (e.g., `## Compare and Update the Rankings` - Read Existing, Merge non-matches, compound-key upsert, bottom-up sort and delete).
+      - **Phase 3: `## Test and Complete the Loop`** (Loopback connection, zero-match loop guardrail using Always Output Data + Filter, test checklist).
+
+    *Nodes in this workflow to incorporate into these phases in execution order:*
+1. **Manual Trigger** (`n8n-nodes-base.manualTrigger`)
+   Parameters: {}
+2. **Get ASINs** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "getAll", "documentId": "YOUR_DOCUMENT_ID", "sheetName": "ASINs"}
+3. **Loop Over Items** (`n8n-nodes-base.splitInBatches`)
+   Parameters: {"batchSize": 1, "options": {}}
+4. **ScrapeHero** (`n8n-nodes-scrapehero.scrapeHero`)
+   Parameters: {"apiSelection": "Amazon Offer Listing", "asin": "={{ $json.ASIN }}", "countryCode": "US"}
+5. **Split Out** (`n8n-nodes-base.itemLists`)
+   Parameters: {"operation": "splitOutItems", "fieldToSplitOut": "offer_listings", "options": {}}
+6. **Filter** (`n8n-nodes-base.filter`)
+   Parameters: {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "combinator": "and", "conditions": [{"id": "filter-cond-1", "leftValue": "={{ $json.condition }}", "rightValue": "New", "operator": {"type": "string", "operation": "equals"}}]}}
+7. **Edit Fields1** (`n8n-nodes-base.set`)
+   Parameters: {"mode": "manual", "assignments": {"assignments": [{"id": "edit-field-price", "name": "Price", "value": "={{ Number($json.price.replace(/[^0-9.]/g, '')) }}", "type": "number"}]}, "options": {"includeOtherFields": true}}
+8. **Sort** (`n8n-nodes-base.sort`)
+   Parameters: {"type": "simple", "fieldsToCompare": {"fields": [{"fieldName": "Price", "order": "ascending"}]}}
+9. **Update Sheets** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "appendOrUpdate", "documentId": "YOUR_DOCUMENT_ID", "sheetName": "ASINs", "columns": {"mappingMode": "defineBelow", "matchingColumns": ["ASIN"], "value": {"ASIN": "={{ $('ScrapeHero').item.json.asin }}", "Name": "={{ $('ScrapeHero').item.json.product_title }}", "Lowest New Price": "={{ $json.Price }}"}}}
+7.  **Business Benefits:**
+    - Heading: `## What This Unlocks for Your Business`
+    - Exactly 5 concrete business use cases formatted as bullet points with bold lead-ins, closing with a link to ScrapeHero Cloud / Marketplace.
+8.  **Next Steps:**
+    - Heading: `## Next Steps` (3-4 actionable extension ideas with direct action titles).
+9.  **Wrapping Up:** Exactly three to four paragraphs:
+    - Paragraph 1: Value of the automated DIY workflow.
+    - Paragraph 2: CTA to get ScrapeHero API key + offer to build custom APIs.
+    - Paragraph 3: Managed enterprise scraping service pitch using "we" (link to scrapehero.com).
+10. **Frequently Asked Questions:** (Absolute last section).
+    - Heading: `## Frequently Asked Questions`
+    - 3-6 practical questions using `###` headers, addressing the reader with "you" (answering PAA and technical queries without filler).
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+**Primary KW (Volume - KD - Intent)**
+
+* n8n amazon lowest price tracker
+
+**Secondary KWs (Volume - KD - Intent)**
+
+* find lowest offer price on amazon n8n
+* amazon offer listing api n8n
+* track amazon offer prices
+* amazon buy box vs lowest price
+* n8n amazon price tracking workflow
+
+**Google People Also Ask**
+
+* How do you find the lowest offer price on Amazon instead of the Buy Box price?
+* Can you scrape Amazon offer listings with n8n?
+* How often should you track Amazon offer prices?
+* Why is the Buy Box not always the lowest price?
+* How to filter only New condition Amazon offers in n8n?
+
+**AI-Search (AEO) Question Keywords (Use these as your H2 or H3 headers)**
+
+* Why the Buy Box Does Not Always Show the Lowest Price
+* How to process each ASIN individually in an n8n loop
+* How to split the offer_listings array into separate items
+* How to filter out used and refurbished Amazon offers
+* How to convert string prices to numbers in n8n
+* How to write only the cheapest offer to Google Sheets with Execute Once
+
+**Suggested SEO Title (With Brackets)**
+
+* How to Find the Lowest Offer Price on Amazon With n8n and ScrapeHero
+* n8n Amazon Price Tracker [Lowest New Price Workflow]
+
+**Internal Links**
+
+* https://www.scrapehero.com/amazon-scraping-apis/
+* https://www.scrapehero.com/amazon-web-scraping-challenges/
+* https://www.scrapehero.com/data-driven-amazon-ranking/
+* https://www.scrapehero.com/amazon-scraping-services/
+* https://www.scrapehero.com/marketplace/
+* https://www.scrapehero.com/web-scraping-using-scrapehero-cloud/n8n/
+
+### Reference n8n Workflow JSON
+(Extract node names, types, parameters, connections from here)
+```json
+{
+  "name": "Amazon Offer Listing - Find Lowest New Price",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "ASINs"
+      },
+      "id": "google-sheets-get-asins",
+      "name": "Get ASINs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "loop-over-items-1",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "apiSelection": "Amazon Offer Listing",
+        "asin": "={{ $json.ASIN }}",
+        "countryCode": "US"
+      },
+      "id": "scrapehero-offer-listing",
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "YOUR_SCRAPEHERO_CREDENTIAL_ID",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "splitOutItems",
+        "fieldToSplitOut": "offer_listings",
+        "options": {}
+      },
+      "id": "split-out-offers",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "filter-cond-1",
+              "leftValue": "={{ $json.condition }}",
+              "rightValue": "New",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "filter-new-offers",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edit-field-price",
+              "name": "Price",
+              "value": "={{ Number($json.price.replace(/[^0-9.]/g, '')) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "edit-fields-price",
+      "name": "Edit Fields1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "type": "simple",
+        "fieldsToCompare": {
+          "fields": [
+            {
+              "fieldName": "Price",
+              "order": "ascending"
+            }
+          ]
+        }
+      },
+      "id": "sort-offers-price",
+      "name": "Sort",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "ASINs",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "ASIN"
+          ],
+          "value": {
+            "ASIN": "={{ $('ScrapeHero').item.json.asin }}",
+            "Name": "={{ $('ScrapeHero').item.json.product_title }}",
+            "Lowest New Price": "={{ $json.Price }}"
+          }
+        }
+      },
+      "id": "update-google-sheets",
+      "name": "Update Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1760,
+        0
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get ASINs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ASINs": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Update Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the fields extracted)
+```json
+{
+  "asin": "B08141GQQG",
+  "product_title": "Logitech G733 LIGHTSPEED Wireless Gaming Headset with Suspension Headband, LIGHTSYNC RGB, Blue VO!CE mic Technology and PRO-G Audio Drivers - Black",
+  "product_rating": "4.6 out of 5 stars",
+  "product_ratings_count": "15,823 ratings",
+  "offer_listings": [
+    {
+      "price": "$64.02",
+      "condition": "Used - Very Good",
+      "seller": "Amazon Resale",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$66.02",
+      "condition": "Used - Like New",
+      "seller": "Amazon Resale",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$119.00",
+      "condition": "New",
+      "seller": "Tech Deals Direct",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$119.48",
+      "condition": "New",
+      "seller": "Amazon.com",
+      "ships_from": "Amazon.com",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$129.99",
+      "condition": "New",
+      "seller": "Electronics Superstore",
+      "ships_from": "Electronics Superstore",
+      "fulfilled_by_amazon": false
+    }
+  ]
+}
+```
+
+Generate the Markdown article below:

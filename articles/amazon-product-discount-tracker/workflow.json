@@ -1,0 +1,317 @@
+{
+  "name": "Amazon Product Discount Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-1",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "title": "={{ $now.format('yyyy-MM-dd') }}"
+      },
+      "id": "google-sheets-create-sheet",
+      "name": "Create Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [220, 0],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "Keywords"
+      },
+      "id": "google-sheets-get-keywords",
+      "name": "Get Keywords",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [440, 0],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "loop-over-items-1",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "apiSelection": "Amazon Search API",
+        "textInput": "={{ $json.Keyword }}",
+        "countryCode": "US",
+        "pages": 1
+      },
+      "id": "scrapehero-search-api",
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [880, 0],
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "YOUR_SCRAPEHERO_CREDENTIAL_ID",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "splitOutItems",
+        "fieldToSplitOut": "search_results",
+        "options": {}
+      },
+      "id": "split-out-search-results",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "filter-cond-sale-price",
+              "leftValue": "={{ $json.sale_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "filter-cond-regular-price",
+              "leftValue": "={{ $json.regular_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "filter-discounted-products",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [1320, 0],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-asin",
+              "name": "ASIN",
+              "value": "={{ $json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "field-name",
+              "name": "Name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "field-sale-price",
+              "name": "Sale Price",
+              "value": "={{ $json.sale_price }}",
+              "type": "number"
+            },
+            {
+              "id": "field-regular-price",
+              "name": "Regular Price",
+              "value": "={{ $json.regular_price }}",
+              "type": "number"
+            },
+            {
+              "id": "field-product-url",
+              "name": "Product URL",
+              "value": "={{ $json.product_url }}",
+              "type": "string"
+            },
+            {
+              "id": "field-percent-off",
+              "name": "% OFF",
+              "value": "={{ (($json.regular_price - $json.sale_price) / $json.regular_price * 100).round(2) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "edit-fields-deals",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "={{ $('Create Sheet').item.json.sheetId }}",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "ASIN"
+          ]
+        }
+      },
+      "id": "save-deals-to-sheet",
+      "name": "Save Deals to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1760, 0],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sheet": {
+      "main": [
+        [
+          {
+            "node": "Get Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Keywords": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Save Deals to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Deals to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

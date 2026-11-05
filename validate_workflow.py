@@ -36,7 +36,7 @@ class WorkflowValidator:
         return self.nodes.get(name, {}).get('parameters', {})
 
     def find_nodes_by_type(self, type_substring: str) -> List[str]:
-        return [name for name, node in self.nodes.items() if type_substring in node.get('type', '')]
+        return [name for name, node in self.nodes.items() if type_substring.lower() in node.get('type', '').lower()]
 
     def validate(self):
         print(f"\n🔍 Validating: {self.workflow_path}")

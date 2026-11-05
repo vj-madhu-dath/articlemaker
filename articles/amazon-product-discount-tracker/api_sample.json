@@ -1,0 +1,42 @@
+{
+  "query": {
+    "keyword": "smart watches",
+    "page": 1
+  },
+  "search_results": [
+    {
+      "asin": "B09G96TFF7",
+      "name": "Apple Watch Series 7 (GPS, 41mm) Midnight Aluminum Case with Midnight Sport Band",
+      "sale_price": 299.00,
+      "regular_price": 399.00,
+      "currency": "USD",
+      "rating": "4.8 out of 5 stars",
+      "reviews_count": 34120,
+      "product_url": "https://www.amazon.com/dp/B09G96TFF7",
+      "is_sponsored": false
+    },
+    {
+      "asin": "B0B3955V82",
+      "name": "Garmin Venu Sq 2 GPS Smartwatch",
+      "sale_price": 199.99,
+      "regular_price": 249.99,
+      "currency": "USD",
+      "rating": "4.5 out of 5 stars",
+      "reviews_count": 1280,
+      "product_url": "https://www.amazon.com/dp/B0B3955V82",
+      "is_sponsored": false
+    },
+    {
+      "asin": "B0BDJ6ZVG9",
+      "name": "Fitbit Versa 4 Fitness Smartwatch",
+      "sale_price": 149.95,
+      "regular_price": 199.95,
+      "currency": "USD",
+      "rating": "4.3 out of 5 stars",
+      "reviews_count": 8950,
+      "product_url": "https://www.amazon.com/dp/B0BDJ6ZVG9",
+      "is_sponsored": false
+    }
+  ],
+  "next_page": "https://api.scrapehero.com/v1/amazon/search?keyword=smart+watches&page=2"
+}

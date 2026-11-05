@@ -1,0 +1,526 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article in a **tutorial style** based on the provided configuration and reference workflow.
+
+### Tone & Style Guide
+- **Practical Mentor:** Conversational, hands-on senior engineer walkthrough.
+- **Pronoun Rules:**
+  - Never use "we" in the tutorial, explanation, or overview sections. Use phrasing like "this guide shows", "this workflow uses", or imperative steps.
+  - Never use "you will learn".
+  - DO use "we" ONLY in the final CTA paragraph when referencing ScrapeHero's enterprise data services.
+- **Tone & Language to Avoid:**
+  - Avoid fluff, buzzwords, and academic lecturing.
+  - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to...").
+- **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
+- **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
+- **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
+- **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
+
+### Mandatory Article Structure
+1.  **Title & Metadata:**
+    - H1 Title: `# How to [Action/Goal] With n8n and ScrapeHero`
+    - Bold metadata lines directly below H1 (do NOT use YAML `---` blocks):
+      `**SEO title:** [Title with brackets or primary keyword]`
+      `**Meta description:** [Active voice description under 160 characters]`
+      `**Category:** ScrapeHero Cloud Resources > n8n`
+2.  **Table of Contents:**
+    - Heading: `#### Table of contents`
+    - Flat bulleted list linking only to the top-level H2 (`##`) sections. Do not list H3 step subsections.
+3.  **Introduction:** Exactly two paragraphs.
+    - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
+    - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.
+4.  **Key Takeaways:**
+    - Heading: `### Key Takeaways` immediately following the intro numbered list.
+    - 5-6 practical takeaway bullet points.
+5.  **Before You Begin:**
+    - Prerequisites list/table (n8n instance, credentials, input data source, ScrapeHero API key).
+    - Sample markdown tables showing the required Google Sheet or database structure (headers and sample row). If using separate tabs (e.g. input queries vs output results), provide distinct tables for both tabs.
+6.  **Workflow Construction (Dynamic Multi-Phase Grouping):**
+    Organize the steps based on the workflow's architecture:
+    - **For Linear Pipelines (Extract -> Transform -> Load)**: Organize into 4 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Reading input data, Loop node, ScrapeHero node with Pin Data tip).
+        * For ScrapeHero node: Specify dedicated `n8n-nodes-scrapehero.scrapeHero` community node. Provide the standard 8-step credential setup:
+          1. Go to app.scrapehero.com -> 2. Sign in -> 3. Profile icon -> 4. Open API Key -> 5. Copy key -> 6. Return to n8n -> 7. Paste key -> 8. Save credentials.
+      - **Phase 2: `## [Transformation Phase]`** (Split Out, Edit Fields with markdown mapping table, Filter, Sort, in-step type parsing).
+      - **Phase 3: `## [Destination Phase]`** (Append/Update, target mapping, matching keys, Execute Once).
+      - **Phase 4: `## Test and Complete the Loop`** (Loopback wiring, test checklist).
+    - **For Two-Way Sync / Diff Workflows (Extract -> Format -> Read Existing -> Merge -> Upsert -> Delete)**: Organize into 3 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Input Source, Loop, ScrapeHero node with 8-step credential walkthrough and Pin Data tip, Split Out, Edit Fields with markdown mapping table).
+      - **Phase 2: `## [Compare & Sync Phase]`** (e.g., `## Compare and Update the Rankings` - Read Existing, Merge non-matches, compound-key upsert, bottom-up sort and delete).
+      - **Phase 3: `## Test and Complete the Loop`** (Loopback connection, zero-match loop guardrail using Always Output Data + Filter, test checklist).
+
+    *Nodes in this workflow to incorporate into these phases in execution order:*
+1. **Schedule Trigger** (`n8n-nodes-base.scheduleTrigger`)
+   Parameters: {"rule": {"interval": [{"field": "days", "triggerAtHour": 6}]}}
+2. **Create Sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "create", "documentId": "YOUR_DOCUMENT_ID", "title": "={{ $now.format('yyyy-MM-dd') }}"}
+3. **Get Keywords** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "getAll", "documentId": "YOUR_DOCUMENT_ID", "sheetName": "Keywords"}
+4. **Loop Over Items** (`n8n-nodes-base.splitInBatches`)
+   Parameters: {"batchSize": 1, "options": {}}
+5. **ScrapeHero** (`n8n-nodes-scrapehero.scrapeHero`)
+   Parameters: {"apiSelection": "Amazon Search API", "textInput": "={{ $json.Keyword }}", "countryCode": "US", "pages": 1}
+6. **Split Out** (`n8n-nodes-base.itemLists`)
+   Parameters: {"operation": "splitOutItems", "fieldToSplitOut": "search_results", "options": {}}
+7. **Filter** (`n8n-nodes-base.filter`)
+   Parameters: {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "combinator": "and", "conditions": [{"id": "filter-cond-sale-price", "leftValue": "={{ $json.sale_price }}", "rightValue": "", "operator": {"type": "string", "operation": "notEmpty"}}, {"id": "filter-cond-regular-price", "leftValue": "={{ $json.regular_price }}", "rightValue": "", "operator": {"type": "string", "operation": "notEmpty"}}]}}
+8. **Edit Fields** (`n8n-nodes-base.set`)
+   Parameters: {"mode": "manual", "assignments": {"assignments": [{"id": "field-asin", "name": "ASIN", "value": "={{ $json.asin }}", "type": "string"}, {"id": "field-name", "name": "Name", "value": "={{ $json.name }}", "type": "string"}, {"id": "field-sale-price", "name": "Sale Price", "value": "={{ $json.sale_price }}", "type": "number"}, {"id": "field-regular-price", "name": "Regular Price", "value": "={{ $json.regular_price }}", "type": "number"}, {"id": "field-product-url", "name": "Product URL", "value": "={{ $json.product_url }}", "type": "string"}, {"id": "field-percent-off", "name": "% OFF", "value": "={{ (($json.regular_price - $json.sale_price) / $json.regular_price * 100).round(2) }}", "type": "number"}]}, "options": {}}
+9. **Save Deals to Sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "appendOrUpdate", "documentId": "YOUR_DOCUMENT_ID", "sheetName": "={{ $('Create Sheet').item.json.sheetId }}", "columns": {"mappingMode": "autoMapInputData", "matchingColumns": ["ASIN"]}}
+7.  **Business Benefits:**
+    - Heading: `## What This Unlocks for Your Business`
+    - Exactly 5 concrete business use cases formatted as bullet points with bold lead-ins, closing with a link to ScrapeHero Cloud / Marketplace.
+8.  **Next Steps:**
+    - Heading: `## Next Steps` (3-4 actionable extension ideas with direct action titles).
+9.  **Wrapping Up:** Exactly three to four paragraphs:
+    - Paragraph 1: Value of the automated DIY workflow.
+    - Paragraph 2: CTA to get ScrapeHero API key + offer to build custom APIs.
+    - Paragraph 3: Managed enterprise scraping service pitch using "we" (link to scrapehero.com).
+10. **Frequently Asked Questions:** (Absolute last section).
+    - Heading: `## Frequently Asked Questions`
+    - 3-6 practical questions using `###` headers, addressing the reader with "you" (answering PAA and technical queries without filler).
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+**Primary KW (Volume - KD - Intent)**
+
+* n8n amazon discount tracker
+
+**Secondary KWs (Volume - KD - Intent)**
+
+* track amazon discounts n8n
+* amazon search api discount tracker
+* amazon price drop tracker workflow
+* amazon deal tracker google sheets n8n
+* automate amazon deals tracking
+
+**Google People Also Ask**
+
+* How to track Amazon discounts automatically?
+* Can you track price drops on Amazon with n8n?
+* How to filter only discounted Amazon products in n8n?
+* How to calculate discount percentage in n8n?
+* How to create a new Google Sheets tab daily in n8n?
+
+**AI-Search (AEO) Question Keywords (Use these as your H2 or H3 headers)**
+
+* How do I schedule a daily discount check in n8n?
+* How do I create a daily dated tab in Google Sheets using n8n expressions?
+* How do I search Amazon using ScrapeHero node in an n8n loop?
+* How do I filter products with both sale_price and regular_price?
+* How do I calculate discount percentage (% OFF) using Edit Fields?
+* How do I avoid duplicate product rows using ASIN matching?
+
+**Suggested SEO Title (With Brackets)**
+
+* How to Track Amazon Discounts With n8n and ScrapeHero
+* n8n Amazon Discount Tracker [Daily Deals & Price Drops]
+
+**Internal Links**
+
+* https://www.scrapehero.com/amazon-scraping-apis/
+* https://www.scrapehero.com/marketplace/amazon-search-api/
+* https://www.scrapehero.com/amazon-web-scraping-challenges/
+* https://www.scrapehero.com/amazon-scraping-services/
+* https://www.scrapehero.com/marketplace/
+* https://www.scrapehero.com/web-scraping-using-scrapehero-cloud/n8n/
+
+### Reference n8n Workflow JSON
+(Extract node names, types, parameters, connections from here)
+```json
+{
+  "name": "Amazon Product Discount Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-1",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "title": "={{ $now.format('yyyy-MM-dd') }}"
+      },
+      "id": "google-sheets-create-sheet",
+      "name": "Create Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "Keywords"
+      },
+      "id": "google-sheets-get-keywords",
+      "name": "Get Keywords",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "loop-over-items-1",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "apiSelection": "Amazon Search API",
+        "textInput": "={{ $json.Keyword }}",
+        "countryCode": "US",
+        "pages": 1
+      },
+      "id": "scrapehero-search-api",
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "YOUR_SCRAPEHERO_CREDENTIAL_ID",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "splitOutItems",
+        "fieldToSplitOut": "search_results",
+        "options": {}
+      },
+      "id": "split-out-search-results",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "filter-cond-sale-price",
+              "leftValue": "={{ $json.sale_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "filter-cond-regular-price",
+              "leftValue": "={{ $json.regular_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      },
+      "id": "filter-discounted-products",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-asin",
+              "name": "ASIN",
+              "value": "={{ $json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "field-name",
+              "name": "Name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "field-sale-price",
+              "name": "Sale Price",
+              "value": "={{ $json.sale_price }}",
+              "type": "number"
+            },
+            {
+              "id": "field-regular-price",
+              "name": "Regular Price",
+              "value": "={{ $json.regular_price }}",
+              "type": "number"
+            },
+            {
+              "id": "field-product-url",
+              "name": "Product URL",
+              "value": "={{ $json.product_url }}",
+              "type": "string"
+            },
+            {
+              "id": "field-percent-off",
+              "name": "% OFF",
+              "value": "={{ (($json.regular_price - $json.sale_price) / $json.regular_price * 100).round(2) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "edit-fields-deals",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "={{ $('Create Sheet').item.json.sheetId }}",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "ASIN"
+          ]
+        }
+      },
+      "id": "save-deals-to-sheet",
+      "name": "Save Deals to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1760,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sheet": {
+      "main": [
+        [
+          {
+            "node": "Get Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Keywords": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Save Deals to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Deals to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the fields extracted)
+```json
+{
+  "query": {
+    "keyword": "smart watches",
+    "page": 1
+  },
+  "search_results": [
+    {
+      "asin": "B09G96TFF7",
+      "name": "Apple Watch Series 7 (GPS, 41mm) Midnight Aluminum Case with Midnight Sport Band",
+      "sale_price": 299.0,
+      "regular_price": 399.0,
+      "currency": "USD",
+      "rating": "4.8 out of 5 stars",
+      "reviews_count": 34120,
+      "product_url": "https://www.amazon.com/dp/B09G96TFF7",
+      "is_sponsored": false
+    },
+    {
+      "asin": "B0B3955V82",
+      "name": "Garmin Venu Sq 2 GPS Smartwatch",
+      "sale_price": 199.99,
+      "regular_price": 249.99,
+      "currency": "USD",
+      "rating": "4.5 out of 5 stars",
+      "reviews_count": 1280,
+      "product_url": "https://www.amazon.com/dp/B0B3955V82",
+      "is_sponsored": false
+    },
+    {
+      "asin": "B0BDJ6ZVG9",
+      "name": "Fitbit Versa 4 Fitness Smartwatch",
+      "sale_price": 149.95,
+      "regular_price": 199.95,
+      "currency": "USD",
+      "rating": "4.3 out of 5 stars",
+      "reviews_count": 8950,
+      "product_url": "https://www.amazon.com/dp/B0BDJ6ZVG9",
+      "is_sponsored": false
+    }
+  ],
+  "next_page": "https://api.scrapehero.com/v1/amazon/search?keyword=smart+watches&page=2"
+}
+```
+
+Generate the Markdown article below:

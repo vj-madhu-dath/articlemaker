@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "description": "Catalog of common reusable screenshots for n8n tutorials",
+  "entries": [
+    {
+      "key": "manual_trigger_add",
+      "title": "Searching and adding Manual Trigger in an n8n workflow",
+      "filename": "Searching and adding Manual Trigger in an n8n workflow.png",
+      "patterns": [
+        "[Ss]earch.*adding Manual Trigger",
+        "Manual Trigger",
+        "adding a Manual Trigger"
+      ]
+    },
+    {
+      "key": "schedule_trigger_add",
+      "title": "Searching and adding Schedule Trigger in an n8n workflow",
+      "filename": "Searching and adding Schedule Trigger in an n8n workflow.png",
+      "patterns": [
+        "[Ss]chedule [Tt]rigger",
+        "Schedule Trigger in an n8n workflow",
+        "adding Schedule Trigger"
+      ]
+    },
+    {
+      "key": "loop_items_add",
+      "title": "Searching and adding a Loop Over Items node in an n8n workflow",
+      "filename": "Searching and adding a Loop Over Items node in an n8n workflow.png",
+      "patterns": [
+        "[Ll]oop [Oo]ver [Ii]tems",
+        "splitInBatches",
+        "Loop node"
+      ]
+    },
+    {
+      "key": "scrapehero_node_add",
+      "title": "Searching and adding a ScrapeHero n8n node",
+      "filename": "Searching and adding a ScrapeHero n8n node.png",
+      "patterns": [
+        "[Ss]earch.*adding.*ScrapeHero",
+        "adding the ScrapeHero node"
+      ]
+    },
+    {
+      "key": "scrapehero_credentials",
+      "title": "Pasting ScrapeHero Cloud API key",
+      "filename": "Pasting ScrapeHero Cloud API key.png",
+      "patterns": [
+        "[Pp]asting ScrapeHero.*API key",
+        "ScrapeHero Cloud API key",
+        "Connect ScrapeHero",
+        "ScrapeHero credentials"
+      ]
+    },
+    {
+      "key": "scrapehero_configure",
+      "title": "Configuring the ScrapeHero n8n node to fetch data",
+      "filename": "Configuring the ScrapeHero n8n node to fetch data.png",
+      "patterns": [
+        "Configuring the ScrapeHero n8n node to fetch data",
+        "ScrapeHero.*node to fetch data",
+        "Configuring the ScrapeHero node"
+      ]
+    },
+    {
+      "key": "google_sheets_credentials",
+      "title": "Setting up Google Cloud credentials in an n8n Google Sheets node",
+      "filename": "Setting up Google Cloud credentials in an n8n Google Sheets node.png",
+      "patterns": [
+        "Google Cloud credentials",
+        "Google Sheets credentials",
+        "Connect.*Google Sheets"
+      ]
+    },
+    {
+      "key": "google_sheets_read",
+      "title": "Configuring the Google Sheets node to read input rows",
+      "filename": "Configuring the Google Sheets node to read.png",
+      "patterns": [
+        "Google Sheets node to read",
+        "Read.*from Google Sheets",
+        "Get ASINs",
+        "Get Queries",
+        "read keywords"
+      ]
+    },
+    {
+      "key": "google_sheets_create",
+      "title": "Configuring the Google Sheets node with Create Sheet action",
+      "filename": "Configuring the Google Sheets node with Create Sheet action.png",
+      "patterns": [
+        "Google Sheets node with Create Sheet",
+        "Create Sheet action",
+        "Create Sheet"
+      ]
+    },
+    {
+      "key": "google_sheets_update",
+      "title": "Configuring the Google Sheets node to update data",
+      "filename": "Configuring the Google Sheets node to update.png",
+      "patterns": [
+        "Google Sheets node to update",
+        "Google Sheets node to append",
+        "append deals",
+        "Update Sheets",
+        "update the lowest price"
+      ]
+    },
+    {
+      "key": "split_out_node",
+      "title": "Split Out node unpacking items array",
+      "filename": "Split Out node unpacking items array.png",
+      "patterns": [
+        "Split Out node",
+        "separate the search results",
+        "unpacking the.*array"
+      ]
+    },
+    {
+      "key": "filter_node",
+      "title": "Configuring the Filter node",
+      "filename": "Configuring the Filter node.png",
+      "patterns": [
+        "Configuring the Filter node",
+        "Filter node to keep"
+      ]
+    },
+    {
+      "key": "edit_fields_node",
+      "title": "Configuring the Edit Fields node",
+      "filename": "Configuring the Edit Fields node.png",
+      "patterns": [
+        "Configuring the Edit Fields node",
+        "Edit Fields node to convert",
+        "Edit Fields node to map",
+        "Set node"
+      ]
+    },
+    {
+      "key": "sort_node",
+      "title": "Configuring the Sort node to order items",
+      "filename": "Configuring the Sort node.png",
+      "patterns": [
+        "Configuring the Sort node",
+        "Sort node to order"
+      ]
+    }
+  ]
+}

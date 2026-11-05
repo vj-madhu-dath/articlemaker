@@ -527,6 +527,47 @@ def cmd_validate(args):
     if errors:
         sys.exit(1)
 
+def cmd_screenshots(args):
+    """Manage screenshots for an article."""
+    from utils import screenshot_manager
+
+    article_target = args.article
+    if not os.path.exists(article_target):
+        cand = os.path.join(ARTICLES_DIR, article_target)
+        if os.path.exists(cand):
+            article_target = cand
+        else:
+            print(f"Error: Article '{args.article}' not found at {article_target} or {cand}")
+            sys.exit(1)
+
+    article_path = screenshot_manager.find_article_file(article_target)
+
+    if args.browser:
+        from utils import browser_capture
+        theme = getattr(args, 'theme', 'dark')
+        browser_capture.auto_capture_article(article_target, args.workflow_id, theme)
+        screenshot_manager.list_screenshots(article_path)
+    elif args.sync:
+        res = screenshot_manager.sync_common_screenshots(article_path)
+        print(f"\n✅ Synced {res['synced_count']} / {res['total_images']} screenshots for {os.path.basename(article_path)}:")
+        for item in res["synced_items"]:
+            print(f"   - [{item['source']}] {item['filename']}")
+        screenshot_manager.list_screenshots(article_path)
+    elif args.capture:
+        screenshot_manager.interactive_capture_session(article_path)
+    elif args.add:
+        screenshot_manager.add_single_screenshot(article_path, args.add, args.alt, args.arrow_target)
+    else:
+        # Default action: list status and sync if any ready
+        screenshot_manager.list_screenshots(article_path)
+        items = screenshot_manager.parse_article_images(article_path)
+        ready = [it for it in items if not it["exists"] and (it["catalog_match"] or it["is_workflow_overview"])]
+        if ready:
+            print(f"Found {len(ready)} screenshots ready to auto-sync! Syncing now...")
+            res = screenshot_manager.sync_common_screenshots(article_path)
+            print(f"✅ Auto-synced {res['synced_count']} screenshots.")
+            screenshot_manager.list_screenshots(article_path)
+
 def main():
     parser = argparse.ArgumentParser(description="ScrapeHero Article Generator - Manage articles and generate workflows.")
     subparsers = parser.add_subparsers(dest="command", required=True, help="Command to run")
@@ -556,9 +597,22 @@ def main():
     # validate command
     val_parser = subparsers.add_parser("validate", help="Validate workflow.json against critic rules")
     val_parser.add_argument("workflow_file", help="Path to the workflow.json file")
-    
+
+    # screenshots command
+    ss_parser = subparsers.add_parser("screenshots", help="Manage article screenshots (list, sync, capture, browser)")
+    ss_parser.add_argument("article", help="Article slug or directory (e.g., 'amazon-product-discount-tracker' or 'articles/...')")
+    ss_parser.add_argument("--browser", action="store_true", help="Automate capture from running n8n browser instance")
+    ss_parser.add_argument("--workflow-id", default=None, help="Explicit n8n workflow ID (optional)")
+    ss_parser.add_argument("--theme", default="dark", choices=["dark", "light"], help="UI theme for capture (default: dark)")
+    ss_parser.add_argument("--sync", action="store_true", help="Auto-sync screenshots from common catalog and render workflow")
+    ss_parser.add_argument("--list", action="store_true", help="List screenshot placeholders and their status")
+    ss_parser.add_argument("--capture", action="store_true", help="Launch interactive clipboard quick-capture session")
+    ss_parser.add_argument("--add", default=None, help="Add a specific image path or 'clipboard'")
+    ss_parser.add_argument("--alt", default=None, help="Specific alt text to match for --add")
+    ss_parser.add_argument("--arrow-target", default=None, help="Text to detect via OCR and point arrow to")
+
     args = parser.parse_args()
-    
+
     if args.command == "new-article":
         cmd_new_article(args)
     elif args.command == "generate":
@@ -568,6 +622,8 @@ def main():
         cmd_generate(args)
     elif args.command == "validate":
         cmd_validate(args)
+    elif args.command == "screenshots":
+        cmd_screenshots(args)
     else:
         parser.print_help()
 

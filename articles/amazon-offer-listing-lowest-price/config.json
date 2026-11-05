@@ -1,0 +1,24 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "Reads Amazon ASINs from Google Sheets, retrieves every seller offer via ScrapeHero's Amazon Offer Listing API, filters for New condition offers, parses and sorts by price ascending, and updates the Google Sheet row with the product name and lowest new price using Execute Once setting.",
+  "scrapehero": {
+    "api_selection": "Amazon Offer Listing",
+    "unique_identifier": "ASIN",
+    "node_parameters": {
+      "apiSelection": "Amazon Offer Listing",
+      "asin": "={{ $json.ASIN }}",
+      "countryCode": "US"
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "Reprice against the real market by seeing secondary and merchant-fulfilled offers undercutting the Buy Box",
+    "Enforce Minimum Advertised Price (MAP) policies by spotting unauthorized resellers and liquidators",
+    "Find wholesale and arbitrage sourcing opportunities",
+    "Track competitor discounting trends and clearance cycles",
+    "Catch Buy Box risk early before the featured offer changes"
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}

@@ -1,0 +1,25 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "Runs daily via Schedule Trigger, creates a new dated Google Sheets tab, reads search keywords from a Keywords tab, searches Amazon via ScrapeHero's Amazon Search API, splits results, filters for discounted items having both sale_price and regular_price, calculates discount percentage (% OFF), and appends/updates deals to the dated tab matching on ASIN.",
+  "scrapehero": {
+    "api_selection": "Amazon Search API",
+    "unique_identifier": "ASIN",
+    "node_parameters": {
+      "apiSelection": "Amazon Search API",
+      "textInput": "={{ $json.Keyword }}",
+      "countryCode": "US",
+      "pages": 1
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "Eliminate manual price checks with automatic scheduled daily searches",
+    "Build a historical discount log with automated dated daily tabs",
+    "Scale across unlimited keywords dynamically from Google Sheets",
+    "Filter out regular priced listings and isolate genuine discounts",
+    "Track competitor promotional cycles and find affiliate deal opportunities"
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}
