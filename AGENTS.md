@@ -212,3 +212,24 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+## ScrapeHero Article & Screenshot Guidelines
+
+When generating or updating tutorial articles and screenshots:
+
+1. **Live Browser Captures Only**:
+   - Never use synthetic HTML/SVG mock cards or placeholder images.
+   - Capture full-window 1920×1080 screenshots directly from a live running n8n instance.
+   - Always enforce **Dark Mode** (`color_scheme='dark'`).
+
+2. **Pixel-Perfect Markup Standards**:
+   - **Side Panel Search Result**: Horizontal red arrow pointing right, landing exactly 10px from the card border (no floating gap).
+   - **Parameter Groups**: Bounding box (`#FF2200`, 6px stroke) dynamically enclosing parameter labels and inputs with 8px padding. Never slice text with fixed coordinates.
+   - **Pin Data**: Diagonal arrow pointing directly at the pin icon `📌`.
+   - **Complete Workflow Overview**: Must remain completely clean with NO markup, arrows, or boxes.
+   - **Execute Step Button Arrow**: ONLY display if the article step text explicitly mentions clicking or executing the step (e.g., "click **Execute Step**").
+
+3. **Git Hygiene**:
+   - Push all generated articles, workflows, and screenshots to GitHub.
+   - Exclude `.n8n_browser_profile/` and video files (`*.mp4`, `*.mov`, `*.webm`).
+
