@@ -1,0 +1,671 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article in a **tutorial style** based on the provided configuration and reference workflow.
+
+### Tone & Style Guide
+- **Practical Mentor:** Conversational, hands-on senior engineer walkthrough.
+- **Pronoun Rules:**
+  - Never use "we" in the tutorial, explanation, or overview sections. Use phrasing like "this guide shows", "this workflow uses", or imperative steps.
+  - Never use "you will learn".
+  - DO use "we" ONLY in the final CTA paragraph when referencing ScrapeHero's enterprise data services.
+- **Tone & Language to Avoid:**
+  - Avoid fluff, buzzwords, and academic lecturing.
+  - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to...").
+- **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
+- **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
+- **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
+- **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
+
+### Mandatory Article Structure
+1.  **Title & Metadata:**
+    - H1 Title: `# How to [Action/Goal] With n8n and ScrapeHero`
+    - Bold metadata lines directly below H1 (do NOT use YAML `---` blocks):
+      `**SEO title:** [Title with brackets or primary keyword]`
+      `**Meta description:** [Active voice description under 160 characters]`
+      `**Category:** ScrapeHero Cloud Resources > n8n`
+2.  **Table of Contents:**
+    - Heading: `#### Table of contents`
+    - Flat bulleted list linking only to the top-level H2 (`##`) sections. Do not list H3 step subsections.
+3.  **Introduction:** Exactly two paragraphs.
+    - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
+    - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.
+4.  **Key Takeaways:**
+    - Heading: `### Key Takeaways` immediately following the intro numbered list.
+    - 5-6 practical takeaway bullet points.
+5.  **Before You Begin:**
+    - Prerequisites list/table (n8n instance, credentials, input data source, ScrapeHero API key).
+    - Sample markdown tables showing the required Google Sheet or database structure (headers and sample row). If using separate tabs (e.g. input queries vs output results), provide distinct tables for both tabs.
+6.  **Workflow Construction (Dynamic Multi-Phase Grouping):**
+    Organize the steps based on the workflow's architecture:
+    - **For Linear Pipelines (Extract -> Transform -> Load)**: Organize into 4 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Reading input data, Loop node, ScrapeHero node with Pin Data tip).
+        * For ScrapeHero node: Specify dedicated `n8n-nodes-scrapehero.scrapeHero` community node. Provide the standard 8-step credential setup:
+          1. Go to app.scrapehero.com -> 2. Sign in -> 3. Profile icon -> 4. Open API Key -> 5. Copy key -> 6. Return to n8n -> 7. Paste key -> 8. Save credentials.
+      - **Phase 2: `## [Transformation Phase]`** (Split Out, Edit Fields with markdown mapping table, Filter, Sort, in-step type parsing).
+      - **Phase 3: `## [Destination Phase]`** (Append/Update, target mapping, matching keys, Execute Once).
+      - **Phase 4: `## Test and Complete the Loop`** (Loopback wiring, test checklist).
+    - **For Two-Way Sync / Diff Workflows (Extract -> Format -> Read Existing -> Merge -> Upsert -> Delete)**: Organize into 3 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Input Source, Loop, ScrapeHero node with 8-step credential walkthrough and Pin Data tip, Split Out, Edit Fields with markdown mapping table).
+      - **Phase 2: `## [Compare & Sync Phase]`** (e.g., `## Compare and Update the Rankings` - Read Existing, Merge non-matches, compound-key upsert, bottom-up sort and delete).
+      - **Phase 3: `## Test and Complete the Loop`** (Loopback connection, zero-match loop guardrail using Always Output Data + Filter, test checklist).
+
+    *Nodes in this workflow to incorporate into these phases in execution order:*
+1. **Schedule Trigger** (`n8n-nodes-base.scheduleTrigger`)
+   Parameters: {"rule": {"interval": [{"field": "months"}]}}
+2. **Get row(s) in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"documentId": {"__rl": true, "value": "17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY", "mode": "list", "cachedResultName": "FBA Deal Finder", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit#gid=0"}, "options": {}}
+3. **Loop Over Items** (`n8n-nodes-base.splitInBatches`)
+   Parameters: {"options": {}}
+4. **ScrapeHero** (`n8n-nodes-scrapehero.scrapeHero`)
+   Parameters: {"api": "amazonOfferListing", "amazonOfferAsin": "={{ $json.ASIN }}"}
+5. **Split Out** (`n8n-nodes-base.splitOut`)
+   Parameters: {"fieldToSplitOut": "offer_listings", "options": {}}
+6. **Filter** (`n8n-nodes-base.filter`)
+   Parameters: {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3}, "conditions": [{"id": "005a83d7-9136-47b7-9484-1b58d8d05945", "leftValue": "={{ $json.fulfilled_by_amazon }}", "rightValue": "", "operator": {"type": "boolean", "operation": "true", "singleValue": true}}], "combinator": "and"}, "options": {}}
+7. **If** (`n8n-nodes-base.if`)
+   Parameters: {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3}, "conditions": [{"id": "c96a4d01-f077-4730-bd5f-1e999e2ba99d", "leftValue": "={{ Object.keys($json).length === 0 }}", "rightValue": "", "operator": {"type": "boolean", "operation": "false", "singleValue": true}}], "combinator": "and"}, "options": {}}
+8. **Append row in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "append", "documentId": {"__rl": true, "value": "17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY", "mode": "list", "cachedResultName": "FBA Deal Finder", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit#gid=0"}, "columns": {"mappingMode": "defineBelow", "value": {"ASIN": "={{ $('Loop Over Items').item.json.ASIN }}", "Product Name": "={{ $('Loop Over Items').item.json[\"Product Name\"] }}", "Previous FBA Count": "={{ $json.Count }}"}, "matchingColumns": [], "schema": [{"id": "ASIN", "displayName": "ASIN", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}, {"id": "Product Name", "displayName": "Product Name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}, {"id": "Previous FBA Count", "displayName": "Previous FBA Count", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}], "attemptToConvertTypes": false, "convertFieldsToString": false}, "options": {}}
+9. **Edit Fields** (`n8n-nodes-base.set`)
+   Parameters: {"assignments": {"assignments": [{"id": "33fc9fd1-1149-4f2a-8d25-2c8ec95bd0e6", "name": "Count", "value": "={{ $input.all().length }}", "type": "number"}]}, "options": {}}
+10. **If1** (`n8n-nodes-base.if`)
+   Parameters: {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3}, "conditions": [{"id": "d6e9b3f3-2d9a-495b-ab15-9e0c721da5a2", "leftValue": "={{ $('Loop Over Items').item.json[\"Previous FBA Count\"].toNumber() }}", "rightValue": "={{ $json.Count }}", "operator": {"type": "number", "operation": "notEquals"}}], "combinator": "and"}, "options": {}}
+11. **Create a message** (`n8n-nodes-base.googleChat`)
+   Parameters: {"authentication": "oAuth2", "spaceId": "spaces/AAAAvWX_Yyk", "messageUi": {"text": "=FBA Count for {{ $('Loop Over Items').item.json[\"Product Name\"] }} has changed to {{ $json.Count }} from {{ $('Loop Over Items').item.json[\"Previous FBA Count\"] }}"}, "additionalFields": {}}
+7.  **Business Benefits:**
+    - Heading: `## What This Unlocks for Your Business`
+    - Exactly 5 concrete business use cases formatted as bullet points with bold lead-ins, closing with a link to ScrapeHero Cloud / Marketplace.
+8.  **Next Steps:**
+    - Heading: `## Next Steps` (3-4 actionable extension ideas with direct action titles).
+9.  **Wrapping Up:** Exactly three to four paragraphs:
+    - Paragraph 1: Value of the automated DIY workflow.
+    - Paragraph 2: CTA to get ScrapeHero API key + offer to build custom APIs.
+    - Paragraph 3: Managed enterprise scraping service pitch using "we" (link to scrapehero.com).
+10. **Frequently Asked Questions:** (Absolute last section).
+    - Heading: `## Frequently Asked Questions`
+    - 3-6 practical questions using `###` headers, addressing the reader with "you" (answering PAA and technical queries without filler).
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+# Primary KW (Volume - KD - Intent)
+
+Amazon FBA deals monitoring
+
+# Secondary KWs (Volume - KD - Intent)
+
+Amazon deal finder
+Amazon offer listing API
+FBA price tracker
+Amazon seller offer tracking
+Amazon price alert automation
+n8n Amazon automation
+
+# Google People Also Ask
+
+How do I find the cheapest FBA offers on Amazon?
+How do I automate Amazon price tracking?
+How can I extract Amazon seller and offer details?
+How do I stop receiving duplicate price alerts?
+How do I connect an API to n8n?
+
+# Related Searches
+
+Amazon price tracker
+Amazon price tracking workflow
+Amazon FBA offer tracking
+Amazon price drop alerts automation
+Scheduled Amazon price monitoring
+
+# AI-Search (AEO) Question Keywords (Use these as your H2 or H3 headers)
+
+How to Build an Automated Amazon FBA Deal Finder Workflow Using n8n?
+How Can You Use the Amazon Offer Listing API to Find FBA Deals?
+How Does the Amazon Offer Listing API Retrieve Seller Offers and Prices?
+How to Connect ScrapeHero's Amazon Offer Listing API to an n8n Workflow?
+How to Schedule Automated Amazon Offer Checks Using n8n?
+How to Configure Slack and Telegram Alerts for Amazon FBA Deals?
+
+# Suggested SEO Title (With Brackets)
+
+Automating Amazon FBA Deals Monitoring Using n8n [Step-by-Step Workflow]
+Automate Amazon FBA Deal Tracking with n8n and ScrapeHero API [2026 Guide]
+
+# Internal Links
+
+https://www.scrapehero.com/scrape-amazon-product-offers-and-sellers/
+https://www.scrapehero.com/scrape-amazon-product-data/
+https://www.scrapehero.com/amazon-scraping-apis/
+https://www.scrapehero.com/best-price-monitoring-tools/
+
+### Reference n8n Workflow JSON
+(Extract node names, types, parameters, connections from here)
+```json
+{
+  "name": "FBA Deal Finder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        48
+      ],
+      "id": "be2e60b6-74ca-4233-8f72-60a10f36e17c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY",
+          "mode": "list",
+          "cachedResultName": "FBA Deal Finder",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        48
+      ],
+      "id": "1cf5d798-bbb8-4c8d-91ae-71a3f670127a",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YF8lWk14yVooecbI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        48
+      ],
+      "id": "38c0f92a-6a93-48da-82e1-103b8b5f2b52",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "api": "amazonOfferListing",
+        "amazonOfferAsin": "={{ $json.ASIN }}"
+      },
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "0514c363-e005-4c8f-a046-86753be9ba4e",
+      "name": "ScrapeHero",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "pgdM2nazj26sskiw",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "offer_listings",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "cf2b3a64-4271-44e7-91fa-cda8376f6295",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "005a83d7-9136-47b7-9484-1b58d8d05945",
+              "leftValue": "={{ $json.fulfilled_by_amazon }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "480cf35b-ee20-4f1c-9285-ad025eabe5c9",
+      "name": "Filter",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c96a4d01-f077-4730-bd5f-1e999e2ba99d",
+              "leftValue": "={{ Object.keys($json).length === 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        -96
+      ],
+      "id": "e79c8844-9637-47bc-96e0-53b275d14de2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY",
+          "mode": "list",
+          "cachedResultName": "FBA Deal Finder",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ASIN": "={{ $('Loop Over Items').item.json.ASIN }}",
+            "Product Name": "={{ $('Loop Over Items').item.json[\"Product Name\"] }}",
+            "Previous FBA Count": "={{ $json.Count }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product Name",
+              "displayName": "Product Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Previous FBA Count",
+              "displayName": "Previous FBA Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2016,
+        64
+      ],
+      "id": "d1a07395-9597-4bc4-bf5c-2cfc0b7f6e34",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YF8lWk14yVooecbI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33fc9fd1-1149-4f2a-8d25-2c8ec95bd0e6",
+              "name": "Count",
+              "value": "={{ $input.all().length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1568,
+        -96
+      ],
+      "id": "578c5512-4c9b-422a-aab3-0bc8d7daf35d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d6e9b3f3-2d9a-495b-ab15-9e0c721da5a2",
+              "leftValue": "={{ $('Loop Over Items').item.json[\"Previous FBA Count\"].toNumber() }}",
+              "rightValue": "={{ $json.Count }}",
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        -32
+      ],
+      "id": "93ebab7b-7a91-4411-bcba-7823b923749a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "spaceId": "spaces/AAAAvWX_Yyk",
+        "messageUi": {
+          "text": "=FBA Count for {{ $('Loop Over Items').item.json[\"Product Name\"] }} has changed to {{ $json.Count }} from {{ $('Loop Over Items').item.json[\"Previous FBA Count\"] }}"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleChat",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        -128
+      ],
+      "id": "9007afcc-4e53-4fe7-b7fc-72e9dafb191d",
+      "name": "Create a message",
+      "webhookId": "b21f2486-8e5d-420f-8ee6-be4c0bb9da10",
+      "credentials": {
+        "googleChatOAuth2Api": {
+          "id": "tb9nBRBZlO3Ernw9",
+          "name": "Chat account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "307f4ccc-bad1-47bd-a706-872b5fd59de9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feec7fd35bf17c0fe723b21ecbab49837a2dc5f0dfefdade4edc8e5d088c79cd"
+  },
+  "nodeGroups": [],
+  "id": "cRg32ulPjtEmj6zO",
+  "tags": []
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the fields extracted)
+```json
+{
+  "asin": "B08141GQQG",
+  "product_title": "Logitech G733 LIGHTSPEED Wireless Gaming Headset with Suspension Headband, LIGHTSYNC RGB, Blue VO!CE mic Technology and PRO-G Audio Drivers - Black",
+  "product_rating": "4.6 out of 5 stars",
+  "product_ratings_count": "15,823 ratings",
+  "offer_listings": [
+    {
+      "price": "$64.02",
+      "condition": "Used - Very Good",
+      "seller": "Amazon Resale",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$66.02",
+      "condition": "Used - Like New",
+      "seller": "Amazon Resale",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$119.00",
+      "condition": "New",
+      "seller": "Tech Deals Direct",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$119.48",
+      "condition": "New",
+      "seller": "Amazon.com",
+      "ships_from": "Amazon.com",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$129.99",
+      "condition": "New",
+      "seller": "Electronics Superstore",
+      "ships_from": "Electronics Superstore",
+      "fulfilled_by_amazon": false
+    }
+  ]
+}
+```
+
+Generate the Markdown article below:

@@ -1,0 +1,43 @@
+{
+  "asin": "B08141GQQG",
+  "product_title": "Logitech G733 LIGHTSPEED Wireless Gaming Headset with Suspension Headband, LIGHTSYNC RGB, Blue VO!CE mic Technology and PRO-G Audio Drivers - Black",
+  "product_rating": "4.6 out of 5 stars",
+  "product_ratings_count": "15,823 ratings",
+  "offer_listings": [
+    {
+      "price": "$64.02",
+      "condition": "Used - Very Good",
+      "seller": "Amazon Resale",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$66.02",
+      "condition": "Used - Like New",
+      "seller": "Amazon Resale",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$119.00",
+      "condition": "New",
+      "seller": "Tech Deals Direct",
+      "ships_from": "Amazon",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$119.48",
+      "condition": "New",
+      "seller": "Amazon.com",
+      "ships_from": "Amazon.com",
+      "fulfilled_by_amazon": true
+    },
+    {
+      "price": "$129.99",
+      "condition": "New",
+      "seller": "Electronics Superstore",
+      "ships_from": "Electronics Superstore",
+      "fulfilled_by_amazon": false
+    }
+  ]
+}

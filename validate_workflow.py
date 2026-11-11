@@ -56,7 +56,7 @@ class WorkflowValidator:
 
     def _check_split_out(self):
         """Rule 1: Must have Item Lists (Split Out) node for arrays like search_results"""
-        split_nodes = self.find_nodes_by_type('itemLists')
+        split_nodes = self.find_nodes_by_type('itemLists') + self.find_nodes_by_type('splitOut')
         if not split_nodes:
             self.add_error("Missing Item Lists (Split Out) node - needed to split arrays like search_results")
         else:

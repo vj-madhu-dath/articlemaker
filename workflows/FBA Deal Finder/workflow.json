@@ -1,0 +1,477 @@
+{
+  "name": "FBA Deal Finder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        48
+      ],
+      "id": "be2e60b6-74ca-4233-8f72-60a10f36e17c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY",
+          "mode": "list",
+          "cachedResultName": "FBA Deal Finder",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        48
+      ],
+      "id": "1cf5d798-bbb8-4c8d-91ae-71a3f670127a",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YF8lWk14yVooecbI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        48
+      ],
+      "id": "38c0f92a-6a93-48da-82e1-103b8b5f2b52",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "api": "amazonOfferListing",
+        "amazonOfferAsin": "={{ $json.ASIN }}"
+      },
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "0514c363-e005-4c8f-a046-86753be9ba4e",
+      "name": "ScrapeHero",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "pgdM2nazj26sskiw",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "offer_listings",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "cf2b3a64-4271-44e7-91fa-cda8376f6295",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "005a83d7-9136-47b7-9484-1b58d8d05945",
+              "leftValue": "={{ $json.fulfilled_by_amazon }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "480cf35b-ee20-4f1c-9285-ad025eabe5c9",
+      "name": "Filter",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c96a4d01-f077-4730-bd5f-1e999e2ba99d",
+              "leftValue": "={{ Object.keys($json).length === 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        -96
+      ],
+      "id": "e79c8844-9637-47bc-96e0-53b275d14de2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY",
+          "mode": "list",
+          "cachedResultName": "FBA Deal Finder",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17s9lTEyA2m5ZGobxdVo193dXsS-eGJjeTXzfwErbdRY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ASIN": "={{ $('Loop Over Items').item.json.ASIN }}",
+            "Product Name": "={{ $('Loop Over Items').item.json[\"Product Name\"] }}",
+            "Previous FBA Count": "={{ $json.Count }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product Name",
+              "displayName": "Product Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Previous FBA Count",
+              "displayName": "Previous FBA Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2016,
+        64
+      ],
+      "id": "d1a07395-9597-4bc4-bf5c-2cfc0b7f6e34",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YF8lWk14yVooecbI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33fc9fd1-1149-4f2a-8d25-2c8ec95bd0e6",
+              "name": "Count",
+              "value": "={{ $input.all().length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1568,
+        -96
+      ],
+      "id": "578c5512-4c9b-422a-aab3-0bc8d7daf35d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d6e9b3f3-2d9a-495b-ab15-9e0c721da5a2",
+              "leftValue": "={{ $('Loop Over Items').item.json[\"Previous FBA Count\"].toNumber() }}",
+              "rightValue": "={{ $json.Count }}",
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        -32
+      ],
+      "id": "93ebab7b-7a91-4411-bcba-7823b923749a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "spaceId": "spaces/AAAAvWX_Yyk",
+        "messageUi": {
+          "text": "=FBA Count for {{ $('Loop Over Items').item.json[\"Product Name\"] }} has changed to {{ $json.Count }} from {{ $('Loop Over Items').item.json[\"Previous FBA Count\"] }}"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleChat",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        -128
+      ],
+      "id": "9007afcc-4e53-4fe7-b7fc-72e9dafb191d",
+      "name": "Create a message",
+      "webhookId": "b21f2486-8e5d-420f-8ee6-be4c0bb9da10",
+      "credentials": {
+        "googleChatOAuth2Api": {
+          "id": "tb9nBRBZlO3Ernw9",
+          "name": "Chat account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "307f4ccc-bad1-47bd-a706-872b5fd59de9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feec7fd35bf17c0fe723b21ecbab49837a2dc5f0dfefdade4edc8e5d088c79cd"
+  },
+  "nodeGroups": [],
+  "id": "cRg32ulPjtEmj6zO",
+  "tags": []
+}

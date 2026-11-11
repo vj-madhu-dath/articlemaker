@@ -29,7 +29,9 @@ import markup_helper
 
 WORKFLOW_MAP = {
     "amazon-offer-listing-lowest-price": "haNJWsM76BdVtGJX",
-    "amazon-product-discount-tracker": "IWU2MRiCcBqRkVGH"
+    "amazon-product-discount-tracker": "IWU2MRiCcBqRkVGH",
+    "amazon-fba-deal-finder": "87pzTj4j27pnXosR",
+    "FBA Deal Finder": "87pzTj4j27pnXosR"
 }
 
 def get_workflow_id(article_dir: str) -> Optional[str]:
@@ -50,9 +52,9 @@ def get_workflow_id(article_dir: str) -> Optional[str]:
 def extract_node_name(el) -> str:
     """Extracts node name from canvas node element, ignoring badge tokens."""
     full_text = el.inner_text().strip()
-    ignore_tokens = {'done', 'loop', 'kept', '1 item', '4 items', '2 items', 'execute workflow', 'manual'}
+    ignore_tokens = {'done', 'loop', 'kept', '1 item', '4 items', '2 items', '0 items', 'execute workflow', 'manual', 'true', 'false', '1', '2'}
     lines = [l.strip() for l in full_text.split('\n') if l.strip()]
-    valid_lines = [l for l in lines if l.lower() not in ignore_tokens and not l.startswith('read:') and not l.startswith('appendOrUpdate:') and not l.startswith('amazon')]
+    valid_lines = [l for l in lines if l.lower() not in ignore_tokens and not l.startswith('read:') and not l.startswith('appendOrUpdate:') and not l.startswith('append:') and not l.startswith('amazon') and not l.startswith('create:')]
     if valid_lines:
         return valid_lines[0]
     return lines[0] if lines else "Node"
@@ -122,7 +124,7 @@ def get_param_group_box(page, param_keywords: List[str]) -> Optional[tuple]:
             txt = it.inner_text().lower()
             if any(k.lower() in txt for k in param_keywords):
                 b = it.bounding_box()
-                if b and b['width'] > 50 and b['height'] > 10 and b['x'] >= 700:
+                if b and b['width'] > 50 and b['height'] > 10:
                     boxes.append(b)
                     
     if not boxes:
@@ -177,7 +179,7 @@ def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: b
     
     # 1. Dynamic Parameter Bounding Box
     box = None
-    if "asin" in nl or "read" in nl or "keyword" in nl:
+    if "asin" in nl or "read" in nl or "keyword" in nl or "get row" in nl:
         box = get_param_group_box(page, ['Document', 'Sheet'])
     elif "create sheet" in nl:
         box = get_param_group_box(page, ['Document', 'Title'])
@@ -189,12 +191,18 @@ def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: b
         box = get_param_group_box(page, ['Fields To Split Out'])
     elif "filter" in nl or "kept" in nl:
         box = get_param_group_box(page, ['condition'])
+    elif nl == "if" or nl == "if1":
+        box = get_param_group_box(page, ['condition'])
     elif "edit fields" in nl:
-        box = get_param_group_box(page, ['Fields to Set'])
+        box = get_param_group_box(page, ['Fields to Set', 'Count'])
     elif "sort" in nl:
         box = get_param_group_box(page, ['Type', 'Order'])
     elif "update" in nl or "save deals" in nl or "append" in nl:
-        box = get_param_group_box(page, ['Document', 'Sheet', 'Mapping Column Mode', 'Lowest New Price'])
+        box = get_param_group_box(page, ['Document', 'Sheet', 'Mapping Column Mode', 'Lowest New Price', 'ASIN'])
+    elif "chat" in nl or "message" in nl:
+        box = get_param_group_box(page, ['Space Name or ID', 'Text', 'Space'])
+    elif "schedule trigger" in nl:
+        box = get_param_group_box(page, ['Trigger Interval'])
 
     if box:
         markup_helper.draw_box(shot_path, x1=box[0], y1=box[1], x2=box[2], y2=box[3], stroke_width=6)
@@ -307,12 +315,12 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                 if "scrapehero" in n.inner_text().lower():
                     n.dblclick()
                     page.wait_for_timeout(1500)
-                    edit_btn = page.locator('[data-test-id="credential-edit-button"]').first
+                    edit_btn = page.locator('[data-test-id="credential-edit-button"], [data-test-id="node-credentials-empty-state"], button:has-text("Connect to ScrapeHero"), div:has-text("Connect to ScrapeHero")').first
                     if edit_btn.count() > 0:
                         edit_btn.click()
                         page.wait_for_timeout(1500)
 
-                        key_input = page.locator('input[type="password"], input[name*="apiKey"]').first
+                        key_input = page.locator('input[type="password"], input[name*="apiKey"], input[placeholder*="key" i]').first
                         kbox = key_input.bounding_box() if key_input.count() > 0 and key_input.is_visible() else None
 
                         for cit in cred_items:
@@ -349,6 +357,8 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                             continue
                         if "asin" in node_name.lower() and "asin" in alt_l:
                             matched_items.append(it)
+                        elif "get row" in node_name.lower() and ("read" in alt_l or "get row" in alt_l or "asin" in alt_l):
+                            matched_items.append(it)
                         elif "create sheet" in node_name.lower() and "create sheet" in alt_l:
                             matched_items.append(it)
                         elif "keyword" in node_name.lower() and "keyword" in alt_l:
@@ -361,13 +371,19 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                             matched_items.append(it)
                         elif ("filter" in node_name.lower() or "kept" in node_name.lower()) and "filter" in alt_l:
                             matched_items.append(it)
+                        elif node_name == "If" and ("if node" in alt_l and ("active" in alt_l or "exist" in alt_l or "check" in alt_l)):
+                            matched_items.append(it)
+                        elif node_name == "If1" and ("if node" in alt_l and ("detect" in alt_l or "change" in alt_l or "count" in alt_l)):
+                            matched_items.append(it)
                         elif "edit fields" in node_name.lower() and "edit fields" in alt_l:
                             matched_items.append(it)
                         elif "sort" in node_name.lower() and "sort" in alt_l:
                             matched_items.append(it)
                         elif "update" in node_name.lower() and ("update" in alt_l or "lowest price" in alt_l):
                             matched_items.append(it)
-                        elif "save deals" in node_name.lower() and ("append" in alt_l or "dated tab" in alt_l):
+                        elif "append" in node_name.lower() and ("append" in alt_l or "dated tab" in alt_l or "updated fba" in alt_l):
+                            matched_items.append(it)
+                        elif ("message" in node_name.lower() or "chat" in node_name.lower()) and ("chat" in alt_l or "message" in alt_l or "alert" in alt_l):
                             matched_items.append(it)
 
                     for mit in matched_items:

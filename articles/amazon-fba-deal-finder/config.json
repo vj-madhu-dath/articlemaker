@@ -1,0 +1,24 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "Monitors Amazon FBA deals on a schedule by fetching active seller offers with ScrapeHero's Amazon Offer Listing API, filtering for Fulfillment by Amazon (FBA) offers, counting active FBA sellers per product, and logging count changes to Google Sheets while sending instant deal alerts to Google Chat when competition changes.",
+  "scrapehero": {
+    "api_selection": "Amazon Offer Listing",
+    "unique_identifier": "ASIN",
+    "node_parameters": {
+      "apiSelection": "Amazon Offer Listing",
+      "asin": "={{ $json.ASIN }}",
+      "countryCode": "US"
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "Track FBA seller competition levels to detect new arbitrageurs and liquidators entering your listings",
+    "Eliminate alert fatigue by suppressing redundant notifications when FBA offer counts remain unchanged",
+    "Monitor Buy Box eligibility dynamics by identifying when prime-eligible FBA inventory sells out",
+    "Discover high-margin wholesale and arbitrage sourcing opportunities when FBA competition drops",
+    "Maintain an auditable historical log of FBA seller count fluctuations in Google Sheets"
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}
