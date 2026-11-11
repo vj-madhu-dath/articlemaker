@@ -10,22 +10,23 @@ Write a highly structured, instructional SEO article in a **tutorial style** bas
 - **Tone & Language to Avoid:**
   - Avoid fluff, buzzwords, and academic lecturing.
   - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
-- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to...").
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to..."). Do not instruct the reader to rename nodes.
 - **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
 - **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
 - **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
 - **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
 
 ### Mandatory Article Structure
-1.  **Title & Metadata:**
-    - H1 Title: `# How to [Action/Goal] With n8n and ScrapeHero`
-    - Bold metadata lines directly below H1 (do NOT use YAML `---` blocks):
-      `**SEO title:** [Title with brackets or primary keyword]`
-      `**Meta description:** [Active voice description under 160 characters]`
-      `**Category:** ScrapeHero Cloud Resources > n8n`
-2.  **Table of Contents:**
-    - Heading: `#### Table of contents`
-    - Flat bulleted list linking only to the top-level H2 (`##`) sections. Do not list H3 step subsections.
+1.  **SEO Metadata (Above H1):**
+    - Place SEO metadata block strictly above the H1 title in this exact format:
+      [SEO Meta]
+      Focus Keyword: [Primary Keyword]
+      SEO Title: [Title with brackets or primary keyword]
+      SEO Description: [Active voice description under 160 characters]
+      [/SEO Meta]
+    - Do NOT include a Table of Contents (no `#### Table of contents`).
+2.  **H1 Title:**
+    `# How to [Action/Goal] With n8n and ScrapeHero`
 3.  **Introduction:** Exactly two paragraphs.
     - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
     - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.

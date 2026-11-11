@@ -233,3 +233,16 @@ When generating or updating tutorial articles and screenshots:
    - Push all generated articles, workflows, and screenshots to GitHub.
    - Exclude `.n8n_browser_profile/` and video files (`*.mp4`, `*.mov`, `*.webm`).
 
+4. **SEO Metadata & Article Formatting**:
+   - No Table of Contents (`#### Table of contents`).
+   - Place SEO metadata block strictly ABOVE the H1 title in this format:
+     ```markdown
+     [SEO Meta]
+     Focus Keyword: <Primary Keyword>
+     SEO Title: <Title with brackets or primary keyword>
+     SEO Description: <Active voice description under 160 characters>
+     [/SEO Meta]
+     ```
+   - `Focus Keyword` is the primary keyword.
+   - Do not instruct the reader to rename nodes.
+

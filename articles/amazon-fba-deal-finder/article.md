@@ -1,21 +1,10 @@
+[SEO Meta]
+Focus Keyword: Amazon FBA deals monitoring
+SEO Title: Automating Amazon FBA Deals Monitoring Using n8n [Step-by-Step Workflow]
+SEO Description: Automate Amazon FBA deals monitoring using n8n and ScrapeHero API. Track seller offers, detect competition changes, and receive instant alerts.
+[/SEO Meta]
+
 # How to Monitor Amazon FBA Deals With n8n and ScrapeHero
-
-**SEO title:** Automating Amazon FBA Deals Monitoring Using n8n [Step-by-Step Workflow]  
-**Meta description:** Automate Amazon FBA deals monitoring using n8n and ScrapeHero API. Track seller offers, detect competition changes, and receive instant alerts.  
-**Category:** ScrapeHero Cloud Resources > n8n  
-
-#### Table of contents
-
-- [How Can You Use the Amazon Offer Listing API to Find FBA Deals?](#how-can-you-use-the-amazon-offer-listing-api-to-find-fba-deals)
-- [Before You Begin](#before-you-begin)
-- [Create the Workflow](#create-the-workflow)
-- [Filter and Count Active FBA Deals](#filter-and-count-active-fba-deals)
-- [Prevent Duplicate Alerts and Record Changes](#prevent-duplicate-alerts-and-record-changes)
-- [Test and Complete the Loop](#test-and-complete-the-loop)
-- [What This Unlocks for Your Business](#what-this-unlocks-for-your-business)
-- [Next Steps](#next-steps)
-- [Wrapping Up](#wrapping-up)
-- [Frequently Asked Questions](#frequently-asked-questions)
 
 Tracking Fulfillment by Amazon (FBA) deals manually across expanding product catalogs is time-consuming and prone to delays. Setting up automated **Amazon FBA deals monitoring** with n8n ensures that changes in prime-eligible seller competition, stock sellouts, and new offer surges are detected immediately without manual oversight.
 
@@ -89,7 +78,7 @@ Add a **Google Sheets** node after the Schedule Trigger. Under **Operation**, ch
 1. **Document:** Select `FBA Deal Finder` from the list.  
 2. **Sheet:** Select `Sheet1`.  
 
-Rename the node to **Get row(s) in sheet**. Click **Execute Step** to verify that the rows with ASINs, product names, and baseline counts are loaded into n8n.
+Click **Execute Step** to verify that the rows with ASINs, product names, and baseline counts are loaded into n8n.
 
 ![Configuring the Google Sheets node to read ASINs](images/Configuring the Google Sheets node to read ASINs.png)
 
@@ -197,7 +186,7 @@ This expression evaluates the total number of items entering the node simultaneo
 
 Receiving notifications when nothing has changed creates alert fatigue. An If node evaluates whether the newly computed count differs from the baseline stored in your sheet.
 
-Add a second **If** node (named **If1**) after the Edit Fields node. Set the condition to:
+Add a second **If** node after the Edit Fields node. Set the condition to:
 
 1. **Left Value:** `={{ $('Loop Over Items').item.json["Previous FBA Count"].toNumber() }}`  
 2. **Operator:** Number `not equals`  
@@ -211,7 +200,7 @@ If the previous count equals the current count, the item routes to `false` and r
 
 When competition shifts, log the updated metric into Google Sheets for historical tracking.
 
-Add a **Google Sheets** node to the `true` output of If1. Set **Operation** to **Append Row in Sheet**. Select `FBA Deal Finder` and `Sheet1`.
+Add a **Google Sheets** node to the `true` output of the second If node. Set **Operation** to **Append Row in Sheet**. Select `FBA Deal Finder` and `Sheet1`.
 
 Under **Columns**, map the fields:
 
@@ -229,7 +218,7 @@ This logs the product's new count, ensuring future runs compare against the upda
 
 Simultaneously dispatch an immediate notification to your operations team.
 
-Add a **Google Chat** node to the `true` output of If1. Set **Operation** to **Create a Message**, select your alert space, and configure the message text:
+Add a **Google Chat** node to the `true` output of the second If node. Set **Operation** to **Create a Message**, select your alert space, and configure the message text:
 
 ```javascript
 =FBA Count for {{ $('Loop Over Items').item.json["Product Name"] }} has changed to {{ $json.Count }} from {{ $('Loop Over Items').item.json["Previous FBA Count"] }}
@@ -247,7 +236,7 @@ Complete the loop wiring so the execution advances to subsequent ASINs:
 
 1. Connect the output of **Append row in sheet** back to the input of **Loop Over Items**.  
 2. Connect the `false` output of **If** back to **Loop Over Items**.  
-3. Connect the `false` output of **If1** back to **Loop Over Items**.  
+3. Connect the `false` output of the second If node back to **Loop Over Items**.  
 
 ![The complete n8n workflow to monitor Amazon FBA deals using ScrapeHero](images/The complete n8n workflow to monitor Amazon FBA deals using ScrapeHero.png)
 
