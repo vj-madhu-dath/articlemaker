@@ -201,7 +201,7 @@ def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: b
     elif "sort" in nl:
         box = get_param_group_box(page, ['Type', 'Order'])
     elif "update" in nl or "save deals" in nl or "append" in nl:
-        box = get_param_group_box(page, ['Document', 'Sheet', 'Mapping Column Mode', 'Lowest New Price', 'ASIN'])
+        box = get_param_group_box(page, ['Document', 'Sheet', 'Mapping Column Mode', 'Values to Send', 'Lowest New Price', 'ASIN', 'Product Name', 'Previous FBA Count', 'Columns'])
     elif "chat" in nl or "message" in nl:
         box = get_param_group_box(page, ['Space Name or ID', 'Text', 'Space'])
     elif "schedule trigger" in nl:
