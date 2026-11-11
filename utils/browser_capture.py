@@ -135,7 +135,43 @@ def get_param_group_box(page, param_keywords: List[str]) -> Optional[tuple]:
     max_y = max(b['y'] + b['height'] for b in boxes) + pad
     return (int(min_x), int(min_y), int(max_x), int(max_y))
 
-def apply_ndv_markup(node_name: str, shot_path: str, page):
+def get_image_execute_map(article_path: str) -> Dict[str, bool]:
+    """
+    Parses article.md to determine which image/step explicitly mentions clicking Execute Step.
+    Returns a dictionary mapping sanitized filename and alt text to a boolean.
+    """
+    if not os.path.exists(article_path):
+        return {}
+        
+    with open(article_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+        
+    lines = content.split('\n')
+    current_section = []
+    image_exec_map = {}
+    
+    def process_section(sec_lines):
+        text = '\n'.join(sec_lines)
+        has_exec = bool(re.search(r'\b(?:execute\s+step|test\s+(?:the\s+)?step|click\s+(?:\*\*)?execute\s+step\b)', text, re.IGNORECASE))
+        imgs = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', text)
+        for alt, src in imgs:
+            fn = os.path.basename(src)
+            image_exec_map[fn] = has_exec
+            image_exec_map[alt.lower()] = has_exec
+
+    for line in lines:
+        if line.startswith('## ') or line.startswith('### '):
+            if current_section:
+                process_section(current_section)
+            current_section = [line]
+        else:
+            current_section.append(line)
+    if current_section:
+        process_section(current_section)
+        
+    return image_exec_map
+
+def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: bool = False):
     """Dynamically applies bounding boxes and action arrows using live DOM element metrics."""
     nl = node_name.lower()
     
@@ -164,14 +200,16 @@ def apply_ndv_markup(node_name: str, shot_path: str, page):
         markup_helper.draw_box(shot_path, x1=box[0], y1=box[1], x2=box[2], y2=box[3], stroke_width=6)
         print(f"   📦 Applied dynamic parameter box: {box}")
 
-    # 2. Horizontal Arrow on Execute step button (with exact 10px margin)
-    exec_btn = page.locator('button:has-text("Execute step"), button:has-text("Test step")').first
-    if exec_btn.count() > 0 and exec_btn.is_visible():
-        btn_box = exec_btn.bounding_box()
-        if btn_box:
-            tip_x = int(btn_box['x'] - 10)
-            tip_y = int(btn_box['y'] + btn_box['height'] / 2)
-            markup_helper.draw_arrow(shot_path, tip_x=tip_x, tip_y=tip_y, direction="right", length=110, out_path=shot_path)
+    # 2. Horizontal Arrow on Execute step button (only if explicitly mentioned in the article step)
+    if show_execute_arrow:
+        exec_btn = page.locator('button:has-text("Execute step"), button:has-text("Test step")').first
+        if exec_btn.count() > 0 and exec_btn.is_visible():
+            btn_box = exec_btn.bounding_box()
+            if btn_box:
+                tip_x = int(btn_box['x'] - 10)
+                tip_y = int(btn_box['y'] + btn_box['height'] / 2)
+                markup_helper.draw_arrow(shot_path, tip_x=tip_x, tip_y=tip_y, direction="right", length=110, out_path=shot_path)
+                print(f"   🎯 Applied arrow to Execute step button at ({tip_x}, {tip_y})")
 
     # 3. Diagonal Arrow on Pin Data icon (only if pinned banner or pin icon is visible)
     pinned_banner = page.locator('text="This data is pinned"').first
@@ -222,6 +260,7 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
         page.wait_for_timeout(1000)
 
         items = screenshot_manager.parse_article_images(article_path)
+        image_exec_map = get_image_execute_map(article_path)
 
         # 1. Capture Overview / Complete Workflow Canvas (clean, no markup)
         for it in items:
@@ -335,8 +374,9 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                         fn = screenshot_manager.sanitize_filename(mit["alt_text"])
                         fp = os.path.join(images_dir, fn)
                         page.screenshot(path=fp)
-                        apply_ndv_markup(node_name, fp, page)
-                        print(f"   ✅ Saved full NDV snapshot: images/{fn}")
+                        show_exec = image_exec_map.get(fn, False) or image_exec_map.get(mit["alt_text"].lower(), False)
+                        apply_ndv_markup(node_name, fp, page, show_execute_arrow=show_exec)
+                        print(f"   ✅ Saved full NDV snapshot (execute_arrow={show_exec}): images/{fn}")
 
                 page.keyboard.press("Escape")
                 page.wait_for_timeout(700)
