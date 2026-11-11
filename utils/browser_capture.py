@@ -81,7 +81,10 @@ def capture_side_panel_search(page, query: str, out_path: str):
         page.screenshot(path=out_path)
         
         # Dynamically locate the search item row to align arrow with 10px margin
-        item_row = page.locator(f'[class*="item"]:has-text("{query}"), [class*="node-creator-item"]:has-text("{query}")').first
+        item_row = page.locator(f'[class*="_itemsRenderer_"] > div:has-text("{query}"), [class*="_items_"] > div:has-text("{query}"), [class*="node-creator-item"]:has-text("{query}")').first
+        if item_row.count() == 0 or not item_row.is_visible():
+            # Fallback to general item
+            item_row = page.locator(f'[class*="item"]:has-text("{query}")').first
         if item_row.count() == 0 or not item_row.is_visible():
             # Fallback to first item in side panel list
             item_row = page.locator('[class*="item-list"] > div, [class*="list-item"]').first
