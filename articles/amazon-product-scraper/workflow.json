@@ -1,0 +1,547 @@
+{
+  "id": "F77HIcrjzD9rIT9x",
+  "name": "Automate Amazon with ScrapeHero",
+  "active": false,
+  "activeVersionId": null,
+  "createdAt": "2026-10-07T04:06:05.012Z",
+  "updatedAt": "2026-10-07T09:10:42.238Z",
+  "isArchived": false,
+  "versionId": "54dd6c9d-b039-40d0-ba62-f86607ccb606",
+  "triggerCount": 0,
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        3056,
+        1760
+      ],
+      "id": "a819c7a8-35eb-407d-a449-e5f9d07560b8"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo",
+          "mode": "list",
+          "cachedResultName": "Keyword Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Keywords",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "name": "Get Queries",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3280,
+        1760
+      ],
+      "id": "596275f0-8df7-4a69-9835-e72ce56c9516",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CEhC6kdKvf1Xu0TE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3504,
+        1760
+      ],
+      "id": "cf86302f-1514-4500-b0ab-4bf538108350"
+    },
+    {
+      "parameters": {
+        "api": "amazonSearch",
+        "amazonSearchKeyword": "={{ $json.Keywords }}"
+      },
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        3728,
+        1760
+      ],
+      "id": "48d8cbe6-2a26-4a2f-872c-66549c253b6b",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "3AIDp0NcYSllJrdT",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo",
+          "mode": "list",
+          "cachedResultName": "Keyword Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.query.keyword }}"
+        },
+        "options": {}
+      },
+      "typeOptions": {
+        "continueOnFail": true
+      },
+      "name": "Get Existing Listings",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3952,
+        1616
+      ],
+      "id": "76263c7b-4570-45ed-ac6a-08b2e11e0c7e",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CEhC6kdKvf1Xu0TE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo",
+          "mode": "list",
+          "cachedResultName": "Keyword Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Loop Over Items').item.json.Keywords }}",
+          "mode": "name"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "name": "Delete Old Listings",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4624,
+        1664
+      ],
+      "id": "6e4de46b-0ba9-44d8-8a52-b49ba89b0ec0",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CEhC6kdKvf1Xu0TE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo",
+          "mode": "list",
+          "cachedResultName": "Keyword Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SIYqSoVVVQSTocdq1RlrMjQKlQ3OHMQPcuXzbMNVySo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Loop Over Items').item.json.Keywords }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ASIN"
+          ],
+          "schema": [
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Rank",
+              "displayName": "Rank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sale Price",
+              "displayName": "Sale Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Review Count",
+              "displayName": "Review Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Monthly Sales Volume",
+              "displayName": "Monthly Sales Volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product URL",
+              "displayName": "Product URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Rating",
+              "displayName": "Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Upsert New Listings",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4400,
+        1904
+      ],
+      "id": "bc1ff74c-6159-4404-8b7b-ca7aaa9c95cc",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CEhC6kdKvf1Xu0TE",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "search_results",
+        "options": {}
+      },
+      "name": "Prepare New Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3952,
+        1856
+      ],
+      "id": "0e12819a-645f-4efb-b2b1-d544ad5921f4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "ASIN",
+              "field2": "asin"
+            }
+          ]
+        },
+        "joinMode": "keepNonMatches",
+        "outputDataFrom": "input1",
+        "options": {}
+      },
+      "name": "Find Old Items",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        4176,
+        1664
+      ],
+      "id": "157f101c-9f0d-4f18-a6b4-60fdf751ebb3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c0e5e040-2673-4012-9a77-5ff13847f440",
+              "name": "ASIN",
+              "value": "={{ $json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "d5094791-5557-4416-92ad-1175a1b284e4",
+              "name": "Rank",
+              "value": "={{ $json.rank }}",
+              "type": "string"
+            },
+            {
+              "id": "cd303815-5a1b-4e77-9d00-cc7ffe502c84",
+              "name": "Name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "93086f25-b736-4c6b-815b-849649c3ed63",
+              "name": "Sale Price",
+              "value": "={{ $json.sale_price }}",
+              "type": "string"
+            },
+            {
+              "id": "6e840735-19a6-40c0-8dec-944091250282",
+              "name": "Review Count",
+              "value": "={{ $json.review_count }}",
+              "type": "string"
+            },
+            {
+              "id": "65751844-bfe5-49da-b4f8-6ea14b726948",
+              "name": "Rating",
+              "value": "={{ $json.rating }}",
+              "type": "string"
+            },
+            {
+              "id": "d2895eea-e0c3-4bbf-8992-808461dcd0f4",
+              "name": "Monthly Sales Volume",
+              "value": "={{ $json.monthly_sales_volume }}",
+              "type": "string"
+            },
+            {
+              "id": "0f84d006-df4e-4e36-b32e-417035ed8e6b",
+              "name": "Product URL",
+              "value": "={{ $json.product_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        4176,
+        1904
+      ],
+      "id": "7d70a2a1-860c-480d-8ea0-078a1e00d728",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "row_number",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        4400,
+        1664
+      ],
+      "id": "1642cdb1-0e0c-4e96-b6c6-84ef7bab5a41",
+      "name": "Sort"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Queries": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Listings",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare New Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Listings": {
+      "main": [
+        [
+          {
+            "node": "Find Old Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare New Items": {
+      "main": [
+        [
+          {
+            "node": "Find Old Items",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Old Items": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert New Listings": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Upsert New Listings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Delete Old Listings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "F77HIcrjzD9rIT9x",
+      "projectId": "hT78UgPP4wVzESR0",
+      "createdAt": "2026-10-07T04:06:05.019Z",
+      "updatedAt": "2026-10-07T04:06:05.019Z"
+    }
+  ],
+  "activeVersion": null
+}

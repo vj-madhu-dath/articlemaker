@@ -1,0 +1,72 @@
+{
+  "category": "Electronics",
+  "product_listings": [
+    {
+      "rank": 1,
+      "asin": "B0791TX5P5",
+      "name": "Fire TV Stick streaming media player with Alexa built in, includes Alexa Voice Remote, HD, easy set-up, released 2019",
+      "ratings_count": 191042,
+      "rating": "4.5",
+      "sale_price": "$39.99 - $74.98",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/51ZdmnHKukL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Fire-TV-Stick-with-Alexa-Voice-Remote/dp/B0791TX5P5/ref=zg_bs_electronics_1?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 2,
+      "asin": "B07FZ8S74R",
+      "name": "Echo Dot (3rd Gen) - Smart speaker with Alexa - Charcoal",
+      "ratings_count": 369774,
+      "rating": "4.7",
+      "sale_price": "$49.99 - $89.98",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/6182S7MYC2L._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Echo-Dot/dp/B07FZ8S74R/ref=zg_bs_electronics_2?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 3,
+      "asin": "B079QHML21",
+      "name": "Fire TV Stick 4K streaming device with Alexa built in, Dolby Vision, includes Alexa Voice Remote, latest release",
+      "ratings_count": 203179,
+      "rating": "4.5",
+      "sale_price": "$49.99 - $82.97",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/51CgKGfMelL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Fire-TV-Stick-4K-with-Alexa-Voice-Remote/dp/B079QHML21/ref=zg_bs_electronics_3?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 4,
+      "asin": "B07FKR6KXF",
+      "name": "Fire 7 Tablet (7\" display, 16 GB) - Black",
+      "ratings_count": 63239,
+      "rating": "4.3",
+      "sale_price": "$49.99 - $107.97",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/514mBrHxPnL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Fire-Tablet-7/dp/B07FKR6KXF/ref=zg_bs_electronics_4?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 5,
+      "asin": "B07PP49ZDW",
+      "name": "Kindle Paperwhite – Now Waterproof with more than 2x the Storage – Includes Special Offers + Kindle Unlimited (with auto-renewal)",
+      "ratings_count": 39777,
+      "rating": "4.4",
+      "sale_price": "$129.99 - $179.99",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/61eAq6gg-XL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Kindle-Paperwhite-Waterproof-Unlimited-auto-renewal/dp/B07PP49ZDW/ref=zg_bs_electronics_5?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    }
+  ],
+  "child_categories": [
+    {
+      "category": "Accessories & Supplies",
+      "url": "https://www.amazon.com/Best-Sellers-Electronics-Accessories-Supplies/zgbs/electronics/281407/ref=zg_bs_nav_e_1_e"
+    },
+    {
+      "category": "GPS & Navigation",
+      "url": "https://www.amazon.com/Best-Sellers-Electronics-GPS-Finders-Accessories/zgbs/electronics/172526/ref=zg_bs_nav_e_1_e"
+    }
+  ],
+  "next": "https://get.scrapehero.com/amz/best-sellers/?url=https%3A//www.amazon.com/Best-Sellers-Electronics/zgbs/electronics/ref%3Dzg_bs_pg_2%3F_encoding%3DUTF8%26pg%3D2",
+  "url": "https://www.amazon.com/Best-Sellers-Electronics/zgbs/electronics/&pg=1"
+}

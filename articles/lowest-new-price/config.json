@@ -1,0 +1,20 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "The workflow is manually triggered. You first need to have a Google Sheet with a list of assets. When you trigger the workflow it reads the list of assets and one by one it makes an HTTP request to the ScrapingOps Amazon offer listing API via ScrapingNode, then splits the output, uses edit fields to get the the lowest offer price, and saves the price to the same sheet.",
+  "scrapehero": {
+    "api_selection": "Amazon Offer Listing API",
+    "unique_identifier": "ASIN",
+    "node_parameters": {
+      "apiSelection": "Amazon Offer Listing API",
+      "textInput": "{{ $json.query }}",
+      "countryCode": "US"
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "write the business benefits yourself"
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}

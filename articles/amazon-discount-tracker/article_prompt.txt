@@ -1,0 +1,857 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article based on the provided configuration.
+
+### Tone & Style
+- Professional, technical yet accessible, solution-oriented.
+- Use Markdown with standard heading hierarchies (##, ###).
+- Provide step-by-step instructions with numbered lists where appropriate.
+
+### Article Structure
+1.  **Title:** `Automate Amazon Data Collection with n8n [2026 Guide]`
+2.  **Introduction:** Briefly state why manual Amazon data collection is slow and how automating with n8n and ScrapeHero solves it.
+3.  **What the Workflow Does:** Expand on this description: " This n8n workflowstart by using a schedule trigger. The schedule trigger will trigger the creation of a sheet inside a spreadsheet. It will make a request to the Scrapehero Amazon search API using the Scrapehero node, not the HTTP request node. The response will first be split out. A filter node will filter those listings that contain both regular and sale price. The edit field will get only the required fields, including the difference and the percentage discount. The values will be stored inside the sheet created by the Create Sheet Google Sheet.". Mention that it uses the unique identifier `asin` to prevent duplicates in Google Sheets.
+4.  **Before You Automate:** A prerequisite list (Accounts for n8n, Google Sheets, ScrapeHero).
+5.  **Overview:** High-level summary of the workflow steps.
+6.  **Build the Workflow:** 
+    Explain the workflow step-by-step.
+    CRITICAL: For the ScrapeHero step, describe using the *dedicated ScrapeHero n8n node*. Mention setting up the credentials slot. Configure the node parameters exactly as follows:
+    {
+    "apiSelection": "Amazon Search API",
+    "textInput": "{{ $json.query }}",
+    "countryCode": "US",
+    "pages": 4
+}
+    Refer to these output fields to map: ['query', 'search_results', 'next_page'].
+7.  **Test the Workflow:** Instructions for the first run and subsequent update runs.
+8.  **How this Workflow Helps Your Business:** Expand on these benefits: write the business benefits yourself.
+9.  **Best Practices:** Bulleted list of do's and don'ts.
+10. **Ways to Extend the Workflow:** Bulleted list of advanced features.
+11. **Wrapping Up:** Conclusion summarizing the value proposition and a CTA for ScrapeHero.
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+Primary KW (Volume - KD - Intent)
+
+    n8n Amazon discount tracker
+
+Secondary KWs (Volume - KD - Intent)
+
+    n8n Amazon price monitoring
+    Amazon discount tracker
+    Amazon price tracking API
+    Amazon price alert n8n
+    n8n API automation
+    Amazon price drop notifications
+
+Google People Also Ask
+
+    Can n8n automate Amazon price tracking?
+    How can I monitor Amazon product prices automatically?
+    How do I monitor Amazon discounts?
+    How can I automate price drop alerts?
+    How can I monitor Amazon products using an API?
+
+Related Searches
+
+    n8n Amazon price tracker
+    N8n price tracker github
+    Amazon price tracker automation
+    Amazon search API
+    Amazon price monitoring tool
+
+AI-Search (AEO) Question Keywords (Use these as your H2 or H3 headers)
+
+    How Does an n8n Amazon Discount Tracker Work?
+    How Can n8n Detect Amazon Product Discounts?
+    Which API Can You Use to Track Amazon Prices?
+    How Can You Track Amazon Price Drops with n8n?
+    How Can You Send Amazon Price Drop Notifications Automatically?
+
+Suggested SEO Title (With Brackets)
+
+    n8n Amazon Discount Tracker [Track Amazon Prices & Discounts Automatically]
+    n8n Amazon Discount Tracker [Step-by-Step Guide Using Amazon Search API]
+    n8n Amazon Discount Tracker [Automate Amazon Deals, Prices & Alerts]
+
+Internal Links
+
+    https://www.scrapehero.com/amazon-deal-scraping/
+    https://www.scrapehero.com/how-to-build-a-price-tracker/
+    https://www.scrapehero.com/build-price-monitoring-dashboard/
+    https://www.scrapehero.com/amazon-lightning-deals/
+
+### Reference n8n Workflow
+(Use this to accurately describe the steps)
+```json
+{
+  "name": "Amazon Discount Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1776,
+        -208
+      ],
+      "id": "20700e46-dc85-4b36-9106-d413d41f954c"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk",
+          "mode": "list",
+          "cachedResultName": "Discount Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk/edit?usp=drivesdk"
+        },
+        "title": "={{ $now.format('yyyy-MM-dd') }}",
+        "options": {}
+      },
+      "name": "Create Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -1584,
+        -208
+      ],
+      "id": "43fc464b-2eea-4882-8c2a-fd4f8d0343eb",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk",
+          "mode": "list",
+          "cachedResultName": "Discount Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Keywords",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "name": "Get Queries",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -1376,
+        -208
+      ],
+      "id": "153997a2-77bf-424f-b0f4-19df466e34a4",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Loop Over Queries",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1184,
+        -208
+      ],
+      "id": "6cd21baa-d77a-4176-b337-082bf11b47a4"
+    },
+    {
+      "parameters": {
+        "api": "amazonSearch",
+        "amazonSearchKeyword": "={{ $json.Keyword }}"
+      },
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        -208
+      ],
+      "id": "89b751d8-effe-4315-aedc-899edddd9aeb",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "WEfct1Cbv71GScMU",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "search_results",
+        "options": {}
+      },
+      "name": "Split Out Results",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        -208
+      ],
+      "id": "1c3a197f-c9ba-442e-a5ea-27aa1b782de8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "ccb7f7fc-8e24-470d-aa53-4a190c130bab",
+              "leftValue": "={{ $json.sale_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3e57a1d2-06c8-48c1-917b-30895c832f5f",
+              "leftValue": "={{ $json.regular_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Filter Has Both Prices",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -208
+      ],
+      "id": "bfb8d8c5-50e8-4746-9b99-d0de956ee6bb"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk",
+          "mode": "list",
+          "cachedResultName": "Discount Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_Q5jGC9Fre0mrOoeFg3nUOJT9cYs9x4XI2hB1u8KPDk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create Sheet').item.json.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sale Price",
+              "displayName": "Sale Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Regular Price",
+              "displayName": "Regular Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "% OFF",
+              "displayName": "% OFF",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product URL",
+              "displayName": "Product URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Append to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "e2cacd52-8dac-4e88-8d4d-c0b0a94f99da",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5ca5c49-33da-4085-8f80-aa9538aaae91",
+              "name": "ASIN",
+              "value": "={{ $json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "6fad84af-e327-4381-a440-42eda5b1c69d",
+              "name": "Name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "342fcb72-3e0f-447f-9cff-74fffc47ec54",
+              "name": "Sale Price",
+              "value": "={{ $json.sale_price }}",
+              "type": "string"
+            },
+            {
+              "id": "38d840e6-9fd2-4a36-8df5-416757b98f6b",
+              "name": "Regular Price",
+              "value": "={{ $json.regular_price }}",
+              "type": "string"
+            },
+            {
+              "id": "d9210b08-2aec-4249-974a-71292b22c225",
+              "name": "% OFF",
+              "value": "={{ (($json.regular_price - $json.sale_price)/$json.regular_price*100).round(2) }}",
+              "type": "number"
+            },
+            {
+              "id": "2cdb2ed3-89e2-4863-842a-d2097610deca",
+              "name": "Product URL",
+              "value": "={{ $json.product_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -384,
+        -208
+      ],
+      "id": "c8aba20f-8f2b-4c0b-90c6-b3b08c8f31cf",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sheet": {
+      "main": [
+        [
+          {
+            "node": "Get Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Queries": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Queries": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Results": {
+      "main": [
+        [
+          {
+            "node": "Filter Has Both Prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Has Both Prices": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "15477bc9-d395-4c2d-95ae-f4a988c4eb4c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feec7fd35bf17c0fe723b21ecbab49837a2dc5f0dfefdade4edc8e5d088c79cd"
+  },
+  "nodeGroups": [],
+  "id": "ozSy6TS7vBmTuXIl",
+  "tags": []
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the data extraction part)
+```json
+{
+  "query": {
+    "domain": "com",
+    "country_code": "US",
+    "keyword": "smart watches",
+    "page": 1
+  },
+  "search_results": [
+    {
+      "name": "Smart Watch Fitness Tracker,Body Temperature Monitor Blood pressure measurement Bluetooth Smartwatch Touchscreen Wrist Watch, Fitness Tracker with Camera Pedometer for Android iPhone iOS for Men Women",
+      "sale_price": "35.97",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B0881MDMKH",
+      "review_count": "50",
+      "rating": "4.8",
+      "badge": "Sponsored",
+      "image_url": "https://m.media-amazon.com/images/I/610OZ+klgjL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Temperature-measurement-Bluetooth-Smartwatch-Touchscreen/dp/B0881MDMKH/ref=sr_1_1_sspa?dchild=1",
+      "rank": "1",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Smart Watch Sport Smart Watch Fitness Tracker for Android and iOS Phone Activity Tracker with 1.3\" Full Touch Screen, Camera Music Control IP68 Waterproof Smartwatch,Ultra-Long Battery Life, Grey",
+      "sale_price": "45.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B08735Q7LS",
+      "review_count": "10",
+      "rating": "3.8",
+      "badge": "Sponsored",
+      "image_url": "https://m.media-amazon.com/images/I/71aQX7aryWL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Fitness-Activity-Waterproof-Smartwatch-Ultra-Long/dp/B08735Q7LS/ref=sr_1_2_sspa?dchild=1",
+      "rank": "2",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "YAMAY Smart Watch for Android and iOS Phone IP68 Waterproof, Fitness Tracker Watch with Heart Rate Monitor Step Sleep Tracker, Smartwatch Compatible with iPhone Samsung, Watch for Men Women",
+      "sale_price": "40.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B07SK1SF81",
+      "review_count": "5,872",
+      "rating": "4.1",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/61VQOaRpwWL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/YAMAY-Waterproof-Pedometer-Smartwatch-Compatible/dp/B07SK1SF81/ref=sr_1_3?dchild=1&qid=1594196578&sr=8-3",
+      "rank": "3",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "LETSCOM Smart Watch Fitness Tracker Heart Rate Monitor Step Calorie Counter Sleep Monitor Music Control IP68 Water Resistant 1.3\" Color Touch Screen Activity Tracking Pedometer for Women Men",
+      "sale_price": "35.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B085VRQHFR",
+      "review_count": "429",
+      "rating": "4.2",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/61sjThBRuOL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/LETSCOM-Resistant-Activity-Tracking-Pedometer/dp/B085VRQHFR/ref=sr_1_4?dchild=1&qid=1594196578&sr=8-4",
+      "rank": "4",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Samsung Galaxy Watch smartwatch (46mm, GPS, Bluetooth) \u2013 Silver/Black (US Version with Warranty)",
+      "sale_price": "239.00",
+      "regular_price": "269.99",
+      "currency": "USD",
+      "asin": "B07FTKJCMT",
+      "review_count": "6,163",
+      "rating": "4.4",
+      "badge": "Best Seller",
+      "image_url": "https://m.media-amazon.com/images/I/81ZKNYBwYlL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Samsung-Galaxy-Silver-Bluetooth-SM-R800NZSAXAR/dp/B07FTKJCMT/ref=sr_1_5?dchild=1&qid=1594196578&sr=8-5",
+      "rank": "5",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Fossil Gen 5 Carlyle Stainless Steel Touchscreen Smartwatch with Speaker, Heart Rate, GPS, NFC, and Smartphone Notifications",
+      "sale_price": "295.00",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B07SRVV8V4",
+      "review_count": "2,935",
+      "rating": "4.2",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/71XWG48C-NL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Fossil-Carlyle-Stainless-Touchscreen-Smartwatch/dp/B07SRVV8V4/ref=sr_1_6?dchild=1&qid=1594196578&sr=8-6",
+      "rank": "6",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Smart Watch Sport Smart Watch Fitness Tracker for Android and iOS Phone Activity Tracker with 1.3\" Full Touch Screen, Camera Music Control IP68 Waterproof Smartwatch,Ultra-Long Battery Life, Red",
+      "sale_price": "43.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B0878TKXHW",
+      "review_count": "3",
+      "rating": "5.0",
+      "badge": "Sponsored",
+      "image_url": "https://m.media-amazon.com/images/I/71FIr5H7KiL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Fitness-Activity-Waterproof-Smartwatch-Ultra-Long/dp/B0878TKXHW/ref=sr_1_7_sspa?dchild=1",
+      "rank": "7",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Garmin v\u00edvoactive 3, GPS Smartwatch Contactless Payments Built-In Sports Apps, Black/Slate",
+      "sale_price": "152.59",
+      "regular_price": "279.99",
+      "currency": "USD",
+      "asin": "B074K9HNXD",
+      "review_count": "6,832",
+      "rating": "4.3",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/51E19y80s1L._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/v\u00edvoactive-inteligente-Smartwatch-Est\u00e1ndar-pulgadas/dp/B074K9HNXD/ref=sr_1_8?dchild=1&qid=1594196578&sr=8-8",
+      "rank": "8",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "YAMAY Smart Watch 2020 Ver. Watches for Men Women Fitness Tracker Blood Pressure Monitor Blood Oxygen Meter Heart Rate Monitor IP68 Waterproof, Smartwatch Compatible with iPhone Samsung Android Phones",
+      "sale_price": "48.99",
+      "regular_price": "69.99",
+      "currency": "USD",
+      "asin": "B0855JDXGD",
+      "review_count": "453",
+      "rating": "4.3",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/51g0J2ZLH1L._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/YAMAY-Pressure-Waterproof-Smartwatch-Compatible/dp/B0855JDXGD/ref=sr_1_9?dchild=1&qid=1594196578&sr=8-9",
+      "rank": "9",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Fitbit Versa 2 Health and Fitness Smartwatch with Heart Rate, Music, Alexa Built-In, Sleep and Swim Tracking, Bordeaux/Copper Rose, One Size (S and L Bands Included)",
+      "sale_price": "198.95",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B07TWFWJDZ",
+      "review_count": "23,152",
+      "rating": "4.4",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/71jiGaztijL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Fitbit-Versa-Special-inteligente-seguimiento/dp/B07TWFWJDZ/ref=sr_1_10?dchild=1&qid=1594196578&sr=8-10",
+      "rank": "10",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Samsung Galaxy Watch Active2 W/ Enhanced Sleep Tracking Analysis, Auto Workout Tracking, and Pace Coaching (44mm, GPS, Bluetooth), Pink Gold - US Version with Warranty",
+      "sale_price": "249.00",
+      "regular_price": "299.99",
+      "currency": "USD",
+      "asin": "B07VKQ58ZF",
+      "review_count": "5,208",
+      "rating": "4.6",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/51QYH9ttqfL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Samsung-enhanced-tracking-analysis-coaching/dp/B07VKQ58ZF/ref=sr_1_11?dchild=1&qid=1594196578&sr=8-11",
+      "rank": "11",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "NiceFuse Smart Watch, Fitness Tracker Health Watch with Heart Rate Blood Oxygen Monitor, Multiple Sport Modes, Waterproof Activity Tracker Smartwatches with Sleep Monitor",
+      "sale_price": "55.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B0847FBW4R",
+      "review_count": "175",
+      "rating": "4.1",
+      "badge": "Sponsored",
+      "image_url": "https://m.media-amazon.com/images/I/41uBkd5rZVL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/NiceFuse-inteligente-frecuencia-deportivos-resistente/dp/B0847FBW4R/ref=sr_1_12_sspa?dchild=1",
+      "rank": "12",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "COULAX Smart Watch, 1.4\" Touch Screen Smartwatch, Fitness Tracker Step Counter, Activity Tracker with Heart Rate Monitor, IP68 Waterproof Sport Watch for Women and Men",
+      "sale_price": "49.99",
+      "regular_price": "52.99",
+      "currency": "USD",
+      "asin": "B0855QNMSQ",
+      "review_count": "304",
+      "rating": "4.2",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/71GpgnTRJ-L._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/COULAX-Smartwatch-Fitness-Activity-Waterproof/dp/B0855QNMSQ/ref=sr_1_13?dchild=1&qid=1594196578&sr=8-13",
+      "rank": "13",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Smart Watch, UMIDIGI UFit Fitness Tracker for Men Women with Blood Oxygen Meter Heart Rate Monitor Blood Pressure Monitor 5ATM Waterproof, Smartwatch for iPhone Android Phones",
+      "sale_price": "46.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B085TM941M",
+      "review_count": "249",
+      "rating": "4.6",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/610jLK5gCaL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/UMIDIGI-Fitness-Pressure-Waterproof-Smartwatch/dp/B085TM941M/ref=sr_1_14?dchild=1&qid=1594196578&sr=8-14",
+      "rank": "14",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "AMATAGE Smart Watch for Men Android Phones iPhone, Fitness Tracker Watch with Heart Rate and Blood Pressure Monitor, Waterproof Activity Fitness Tracker with 23 Sport Modes, 1 Extra Band(Black)",
+      "sale_price": "54.69",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B0892FC8CP",
+      "review_count": "21",
+      "rating": "4.7",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/61AcR-6vy3L._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/AMATAGE-Android-Pressure-Waterproof-Activity/dp/B0892FC8CP/ref=sr_1_15?dchild=1&qid=1594196578&sr=8-15",
+      "rank": "15",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Apple Watch Series 3 (GPS, 38mm) - Space Gray Aluminum Case with Black Sport Band",
+      "sale_price": "169.00",
+      "regular_price": "199.00",
+      "currency": "USD",
+      "asin": "B07K39FRSL",
+      "review_count": "15,758",
+      "rating": "4.8",
+      "badge": "Best Seller",
+      "image_url": "https://m.media-amazon.com/images/I/71fwbMm1NBL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Apple-Watch-GPS-38mm-Space-Aluminium/dp/B07K39FRSL/ref=sr_1_16?dchild=1&qid=1594196578&sr=8-16",
+      "rank": "16",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Kids Smart Watch for Boys Girls, Kids Smart Watches with Games SOS Call Camera Touch Screen LBS Tracker Kids Smartwatch, Smart Watches for Kids Compatible with iOS & Android",
+      "sale_price": "27.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B08626BYX1",
+      "review_count": "14",
+      "rating": "4.5",
+      "badge": "Sponsored",
+      "image_url": "https://m.media-amazon.com/images/I/61VSnG4aVSL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Watches-Tracker-Smartwatch-Compatible-Android/dp/B08626BYX1/ref=sr_1_17_sspa?dchild=1",
+      "rank": "17",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Letsfit Smart Watch, Fitness Tracker with Heart Rate Monitor, Activity Tracker with 1.3\" Touch Screen, IP68 Waterproof Pedometer Smartwatch with Sleep Monitor, Step Counter for Women and Men",
+      "sale_price": "35.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B07X2KLTJ2",
+      "review_count": "7,055",
+      "rating": "4.3",
+      "badge": "Amazon's Choice",
+      "image_url": "https://m.media-amazon.com/images/I/61MNpaOq6GL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Letsfit-Activity-Waterproof-Pedometer-Smartwatch/dp/B07X2KLTJ2/ref=sr_1_18?dchild=1&qid=1594196578&sr=8-18",
+      "rank": "18",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Willful Smart Watch for Android Phones and iOS Phones Compatible iPhone Samsung, IP68 Swimming Waterproof Smartwatch Fitness Tracker Fitness Watch Heart Rate Monitor Smart Watches for Men Women Black",
+      "sale_price": "30.37",
+      "regular_price": "49.99",
+      "currency": "USD",
+      "asin": "B07YWRXVP6",
+      "review_count": "2,413",
+      "rating": "4.3",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/51oAPLRW9DL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Willful-Compatible-Swimming-Waterproof-Smartwatch/dp/B07YWRXVP6/ref=sr_1_19?dchild=1&qid=1594196578&sr=8-19",
+      "rank": "19",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "AMATAGE Smart Watch for Android Phones iPhone for Men Women, Fitness Tracker Watch with Heart Rate and Sleep Monitor, Waterproof Activity Tracker (Pink/Extra Band)",
+      "sale_price": "45.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B085L2YXB1",
+      "review_count": "205",
+      "rating": "3.9",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/61ZArrgx5oL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/AMATAGE-Android-Fitness-Waterproof-Activity/dp/B085L2YXB1/ref=sr_1_20?dchild=1&qid=1594196578&sr=8-20",
+      "rank": "20",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Smart Watch for Android and iOS Phone 2020 Version Smartwatch IP68 Waterproof,Bluetooth Fitness Activity Tracker with Heart Rate Blood Pressure Monitor Step Sleep Tracker Message Reminder,Men Women",
+      "sale_price": "79.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B0852J9CGX",
+      "review_count": "72",
+      "rating": "4.2",
+      "badge": null,
+      "image_url": "https://m.media-amazon.com/images/I/71S1QUaqfLL._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Smartwatch-Waterproof-Bluetooth-Activity-Pressure/dp/B0852J9CGX/ref=sr_1_21?dchild=1&qid=1594196578&sr=8-21",
+      "rank": "21",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    },
+    {
+      "name": "Timemaker Fitness Tracker with Heart Rate Monitor, Smart Bracelet, Activity Tracker Watch, Step Counter, Sleep Monitor, Calorie Counter, IP67 Waterproof Smart Watch for Android and iOS Smart Phones",
+      "sale_price": "33.99",
+      "regular_price": null,
+      "currency": "USD",
+      "asin": "B082CZBJG5",
+      "review_count": "4",
+      "rating": "4.4",
+      "badge": "Sponsored",
+      "image_url": "https://m.media-amazon.com/images/I/51y4bd4Ys3L._AC_UY218_.jpg",
+      "product_url": "https://www.amazon.com/Timemaker-Fitness-Bracelet-Activity-Waterproof/dp/B082CZBJG5/ref=sr_1_22_sspa?dchild=1",
+      "rank": "22",
+      "search_url": "https://www.amazon.com/s?k=smart+watches&page=1"
+    }
+  ],
+  "next_page": "https://get.scrapehero.com/amz/keyword-search/?keyword=smart watches&domain=com&page=2"
+}
+```
+
+Generate the Markdown article below:

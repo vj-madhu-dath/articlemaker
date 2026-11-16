@@ -1,0 +1,23 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "Fetches Amazon product search results for keywords stored in Google Sheets using ScrapeHero's Amazon API, then upserts the data back to Sheets using ASIN as the unique identifier to prevent duplicates.",
+  "business_benefits": [
+    "Automate daily price and ranking tracking for hundreds of products",
+    "Eliminate manual copy-paste errors in competitive analysis",
+    "Historical data retention for trend analysis",
+    "Scalable to multiple Amazon marketplaces (US, UK, DE, etc.)"
+  ],
+  "scrapehero": {
+    "node_parameters": {
+      "api_type": "amazon",
+      "operation": "search",
+      "domain": "com",
+      "country_code": "US"
+    },
+    "unique_identifier": "asin",
+    "api_json_output_file": "api_sample.json"
+  },
+  "seo_suggestions_file": "../templates/seo_suggestions.md"
+}

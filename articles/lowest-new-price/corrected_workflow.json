@@ -1,0 +1,322 @@
+{
+  "name": "Lowest New Price",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fdc6e412-fb2c-478b-9ee9-009aa112cba8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        0
+      ],
+      "id": "5b596d70-3ce2-4758-9c4e-169a082d8fa9"
+    },
+    {
+      "parameters": {
+        "api": "amazonOfferListing",
+        "amazonOfferAsin": "={{ $json.ASIN }}"
+      },
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        608,
+        0
+      ],
+      "id": "4fe1f4db-aa5c-45c9-94ca-9a750f2d990b",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "WEfct1Cbv71GScMU",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw",
+          "mode": "list",
+          "cachedResultName": "Lowest New Price",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ASINs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ASIN": "={{ $('ScrapeHero').item.json.asin }}",
+            "Name": "={{ $('ScrapeHero').item.json.product_title }}",
+            "Lowest New Price": "={{ $json.Price }}"
+          },
+          "matchingColumns": [
+            "ASIN"
+          ],
+          "schema": [
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lowest New Price",
+              "displayName": "Lowest New Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Update Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "b992c682-e753-4fb5-a4c7-5b28a6822686",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "offer_listings",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "068500cb-6cba-4bcf-acfb-7d0de82841b8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw",
+          "mode": "list",
+          "cachedResultName": "Lowest New Price",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ASINs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "name": "Get ASINs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "85dcf31a-8179-4427-af66-3077c71e39ee",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26c8059d-0a50-4c47-81db-eac246da83ac",
+              "name": "Price",
+              "value": "={{ $json.price }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "c7e4b43c-8522-469f-8e21-3db85b4e65ed",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "Price"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "cc58ee45-bef8-425f-bb68-4a357f83b50f",
+      "name": "Sort"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get ASINs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ASINs": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Update Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5bb362e5-b42b-421e-9998-77b7a47760cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feec7fd35bf17c0fe723b21ecbab49837a2dc5f0dfefdade4edc8e5d088c79cd"
+  },
+  "nodeGroups": [],
+  "id": "OoOSGxrrOD7fvkf1",
+  "tags": []
+}

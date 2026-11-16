@@ -1,0 +1,668 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article in a **tutorial style** based on the provided configuration and reference workflow.
+
+### Tone & Style Guide
+- **Practical Mentor:** Conversational, hands-on senior engineer walkthrough.
+- **Pronoun Rules:**
+  - Never use "we" in the tutorial, explanation, or overview sections. Use phrasing like "this guide shows", "this workflow uses", or imperative steps.
+  - Never use "you will learn".
+  - DO use "we" ONLY in the final CTA paragraph when referencing ScrapeHero's enterprise data services.
+- **Tone & Language to Avoid:**
+  - Avoid fluff, buzzwords, and academic lecturing.
+  - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to...").
+- **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
+- **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
+- **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
+- **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
+
+### Mandatory Article Structure
+1.  **Title & Metadata:**
+    - H1 Title: `# How to [Action/Goal] With n8n and ScrapeHero`
+    - Bold metadata lines directly below H1 (do NOT use YAML `---` blocks):
+      `**SEO title:** [Title with brackets or primary keyword]`
+      `**Meta description:** [Active voice description under 160 characters]`
+      `**Category:** ScrapeHero Cloud Resources > n8n`
+2.  **Table of Contents:**
+    - Heading: `#### Table of contents`
+    - Flat bulleted list linking only to the top-level H2 (`##`) sections. Do not list H3 step subsections.
+3.  **Introduction:** Exactly two paragraphs.
+    - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
+    - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.
+4.  **Key Takeaways:**
+    - Heading: `### Key Takeaways` immediately following the intro numbered list.
+    - 5-6 practical takeaway bullet points.
+5.  **Before You Begin:**
+    - Prerequisites list/table (n8n instance, credentials, input data source, ScrapeHero API key).
+    - A sample markdown table showing the required input Google Sheet or database structure (headers and sample row).
+6.  **Workflow Construction (Dynamic 4-Phase Grouping):**
+    Organize the steps for the provided nodes into 4 logical H2 sections:
+    - **Phase 1: `## Create the Workflow`** (Covers Trigger, Reading input data, Loop node, and the ScrapeHero node):
+      * For ScrapeHero node: Specify dedicated `n8n-nodes-scrapehero.scrapeHero` community node. Provide the standard 8-step credential setup:
+        1. Go to app.scrapehero.com -> 2. Sign in -> 3. Profile icon -> 4. Open API Key -> 5. Copy key -> 6. Return to n8n -> 7. Paste key -> 8. Save credentials.
+      * Note: Mention pinning ScrapeHero output (`Pin Data`) in canvas to save API credits during testing.
+    - **Phase 2: `## [Transformation Phase]`** (Name dynamically based on workflow actions, e.g. `Prepare the Offers`, `Filter and Format the Deals`, `Process and Clean the Data`):
+      * Detail data transformation nodes (Split Out, Filter, Edit Fields, Sort, etc.).
+      * **In-Step Technical Handling:** Address data types, conditions, and conversions directly within the step (e.g., regex float conversion before sorting, condition filters to isolate target records).
+    - **Phase 3: `## [Destination Phase]`** (Name dynamically based on storage, e.g. `Update the Google Sheet`, `Save the Deals to Google Sheets`, `Sync Data to PostgreSQL`):
+      * Detail operation (e.g. `appendOrUpdate`), document/table mapping, unique key matching (deduplication), and `Execute Once` settings.
+    - **Phase 4: `## Test and Complete the Loop`**:
+      * Describe connecting the final destination node output back to the loop node.
+      * End-to-end execution checklist and destination verification.
+
+    *Nodes in this workflow to incorporate into these phases in execution order:*
+1. **Manual Trigger** (`n8n-nodes-base.manualTrigger`)
+   Parameters: {}
+2. **Loop Over Items** (`n8n-nodes-base.splitInBatches`)
+   Parameters: {"options": {}}
+3. **ScrapeHero** (`n8n-nodes-scrapehero.scrapeHero`)
+   Parameters: {"api": "amazonOfferListing", "amazonOfferAsin": "={{ $json.ASIN }}"}
+4. **Update Sheets** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "appendOrUpdate", "documentId": {"__rl": true, "value": "1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw", "mode": "list", "cachedResultName": "Lowest New Price", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "ASINs", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit#gid=0"}, "columns": {"mappingMode": "defineBelow", "value": {"ASIN": "={{ $('ScrapeHero').item.json.asin }}", "Name": "={{ $('ScrapeHero').item.json.product_title }}", "Lowest New Price": "={{ $json.Price }}"}, "matchingColumns": ["ASIN"], "schema": [{"id": "ASIN", "displayName": "ASIN", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}, {"id": "Name", "displayName": "Name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true}, {"id": "Lowest New Price", "displayName": "Lowest New Price", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true}], "attemptToConvertTypes": false, "convertFieldsToString": false}, "options": {}}
+5. **Split Out** (`n8n-nodes-base.splitOut`)
+   Parameters: {"fieldToSplitOut": "offer_listings", "options": {}}
+6. **Get ASINs** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"documentId": {"__rl": true, "value": "1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw", "mode": "list", "cachedResultName": "Lowest New Price", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "ASINs", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit#gid=0"}, "options": {}}
+7. **Edit Fields1** (`n8n-nodes-base.set`)
+   Parameters: {"assignments": {"assignments": [{"id": "26c8059d-0a50-4c47-81db-eac246da83ac", "name": "Price", "value": "={{ $json.price }}", "type": "string"}]}, "options": {}}
+8. **Sort** (`n8n-nodes-base.sort`)
+   Parameters: {"sortFieldsUi": {"sortField": [{"fieldName": "Price"}]}, "options": {}}
+7.  **Business Benefits:**
+    - Heading: `## What This Unlocks for Your Business`
+    - Exactly 5 concrete business use cases formatted as bullet points with bold lead-ins, closing with a link to ScrapeHero Cloud / Marketplace.
+8.  **Next Steps:**
+    - Heading: `## Next Steps` (3-4 actionable extension ideas with direct action titles).
+9.  **Wrapping Up:** Exactly three to four paragraphs:
+    - Paragraph 1: Value of the automated DIY workflow.
+    - Paragraph 2: CTA to get ScrapeHero API key + offer to build custom APIs.
+    - Paragraph 3: Managed enterprise scraping service pitch using "we" (link to scrapehero.com).
+10. **Frequently Asked Questions:** (Absolute last section).
+    - Heading: `## Frequently Asked Questions`
+    - 5-6 questions using `###` headers, addressing the reader with "you" (answering PAA and technical queries).
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+**Primary KW (Volume \- KD \- Intent)**
+
+* n8n amazon keyword rank tracker
+
+**Secondary KWs (Volume \- KD \- Intent)**
+
+* track amazon ranking automatically  
+* amazon search position tracker  
+* amazon rank tracking api  
+* n8n amazon scraper  
+* n8n rank tracking workflow
+
+**Google People Also Ask**
+
+* How to check Amazon ranking?  
+* Can you scrape Amazon search results with n8n?  
+* What is a good Amazon keyword ranking?  
+* How often should I check Amazon keyword rankings?  
+* Is scraping Amazon legal?
+
+**Related Searches**
+
+* amazon keyword tracker free  
+* n8n web scraping workflow  
+* n8n google sheets automation  
+* amazon rank tracker chrome extension  
+* amazon product rank tracker api
+
+**AI-Search (AEO) Question Keywords (Use these as your H2 or H3 headers)**
+
+* How do I build an Amazon keyword rank tracker in n8n?  
+* How do I extract the rank field from Amazon Search API results?  
+* How do I store Amazon keyword rank history in Google Sheets?  
+* How do I set up a rank drop alert in n8n?  
+* What is the best Amazon search scraper API for n8n?  
+* What should I store if my ASIN isn't in the results?  
+* Should I count sponsored results when tracking Amazon rank?
+
+**Suggested SEO Title (With Brackets)**
+
+* N8n Amazon Keyword Rank Tracker \[Track Rankings Automatically\]  
+* n8n Amazon Keyword Rank Tracker \[Position Change \+ Alerts\]
+
+**Internal Links**
+
+* [https\://www\.scrapehero.com/amazon-scraping-apis/](https://www.scrapehero.com/amazon-scraping-apis/)  
+* [https\://www\.scrapehero.com/amazon-scraping-services/](https://www.scrapehero.com/amazon-scraping-services/)  
+* [https\://www\.scrapehero.com/data-driven-amazon-ranking/](https://www.scrapehero.com/data-driven-amazon-ranking/)  
+* [https\://www\.scrapehero.com/amazon-web-scraping-challenges/](https://www.scrapehero.com/amazon-web-scraping-challenges/)  
+* [https\://www\.scrapehero.com/automate-amazon-product-scraping-with-n8n-and-scrapehero/](https://www.scrapehero.com/automate-amazon-product-scraping-with-n8n-and-scrapehero/)  
+* [https\://www\.scrapehero.com/scrape-amazon-product-data/](https://www.scrapehero.com/scrape-amazon-product-data/)  
+* [https\://www\.scrapehero.com/marketplace/amazon-search-api/](https://www.scrapehero.com/marketplace/amazon-search-api/)
+
+### Reference n8n Workflow JSON
+(Extract node names, types, parameters, connections from here)
+```json
+{
+  "name": "Lowest New Price",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fdc6e412-fb2c-478b-9ee9-009aa112cba8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        0
+      ],
+      "id": "5b596d70-3ce2-4758-9c4e-169a082d8fa9"
+    },
+    {
+      "parameters": {
+        "api": "amazonOfferListing",
+        "amazonOfferAsin": "={{ $json.ASIN }}"
+      },
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        608,
+        0
+      ],
+      "id": "4fe1f4db-aa5c-45c9-94ca-9a750f2d990b",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "WEfct1Cbv71GScMU",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw",
+          "mode": "list",
+          "cachedResultName": "Lowest New Price",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ASINs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ASIN": "={{ $('ScrapeHero').item.json.asin }}",
+            "Name": "={{ $('ScrapeHero').item.json.product_title }}",
+            "Lowest New Price": "={{ $json.Price }}"
+          },
+          "matchingColumns": [
+            "ASIN"
+          ],
+          "schema": [
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lowest New Price",
+              "displayName": "Lowest New Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "Update Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "b992c682-e753-4fb5-a4c7-5b28a6822686",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "offer_listings",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "068500cb-6cba-4bcf-acfb-7d0de82841b8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw",
+          "mode": "list",
+          "cachedResultName": "Lowest New Price",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ASINs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YBqG_affaZ9oRFKcQkiUv59xt1dA3oHbolgS-WJEwNw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "name": "Get ASINs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "85dcf31a-8179-4427-af66-3077c71e39ee",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xhpAoIgiuTVNAatz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26c8059d-0a50-4c47-81db-eac246da83ac",
+              "name": "Price",
+              "value": "={{ $json.price }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "c7e4b43c-8522-469f-8e21-3db85b4e65ed",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "Price"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "cc58ee45-bef8-425f-bb68-4a357f83b50f",
+      "name": "Sort"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get ASINs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ASINs": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Update Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5bb362e5-b42b-421e-9998-77b7a47760cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feec7fd35bf17c0fe723b21ecbab49837a2dc5f0dfefdade4edc8e5d088c79cd"
+  },
+  "nodeGroups": [],
+  "id": "OoOSGxrrOD7fvkf1",
+  "tags": []
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the fields extracted)
+```json
+{
+  "asin": "B08141GQQG",
+  "product_title": "Logitech G733 LIGHTSPEED Wireless Gaming Headset with suspension headband, LIGHTSYNC RGB, Blue VO!CE mic technology and PRO-G audio drivers - White",
+  "product_rating": 4.5,
+  "product_ratings_count": 17274,
+  "url": "https://www.amazon.com/gp/offer-listing/B08141GQQG/ref=olp_page_1?ie=UTF8",
+  "next": "https://get.scrapehero.com/amz/offer-listing/?cursor=eyJhc2luIjogIkIwODE0MUdRUUciLCAiZG9tYWluIjogImFtYXpvbi5jb20iLCAiY3VycmVuY3kiOiAiVVNEIiwgImNvdW50cnlfY29kZSI6ICJVUyIsICJhbWF6b25fdXJsIjogImh0dHBzOi8vd3d3LmFtYXpvbi5jb20vZ3AvYW9kL2FqYXgvcmVmPWFvZF9wYWdlXzI_YXNpbj1CMDgxNDFHUVFHJnBjPWRwJnBhZ2Vubz0yIiwgImRpc3BsYXlfdXJsIjogImh0dHBzOi8vd3d3LmFtYXpvbi5jb20vZ3Avb2ZmZXItbGlzdGluZy9CMDgxNDFHUVFHL3JlZj1vbHBfcGFnZV9uZXh0P2llPVVURjgmc3RhcnRJbmRleD0xMCIsICJ0b3RhbF9zZWxsZXIiOiAxMSwgInBhZ2UiOiAyLCAicG9zaXRpb24iOiAxMiwgImNvb2tpZXMiOiB7InNlc3Npb24taWQiOiAiOTYwLTUyODY4NzctNDg1ODc1NiIsICJzZXNzaW9uLWlkLXRpbWUiOiAiMjA4Mjc4NzIwMWwiLCAidWJpZC1tYWluIjogIjczMC05OTA2NTI5LTczNDI0NTYiLCAiaTE4bi1wcmVmcyI6ICJVU0QiLCAic2tpbiI6ICJub3NraW4ifX0=",
+  "offer_listings": [
+    {
+      "position": 1,
+      "currency": "USD",
+      "price": "$119.48",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery Monday, February 24 Or fastest delivery Sunday, February 23 . Order within 10 hrs 32 mins",
+      "fulfilled_by_amazon": true,
+      "ships_from": "Amazon.com",
+      "seller": "Amazon.com",
+      "seller_condition_notes": null,
+      "seller_url": null,
+      "seller_id": null,
+      "seller_rating": null,
+      "seller_ratings_count": null,
+      "seller_percentage": null
+    },
+    {
+      "position": 2,
+      "currency": "USD",
+      "price": "$64.02",
+      "condition": "Used - Very Good",
+      "shipping_details": null,
+      "delivery": "FREE delivery Monday, February 24 Or fastest delivery Sunday, February 23 . Order within 10 hrs 32 mins",
+      "fulfilled_by_amazon": true,
+      "ships_from": "Amazon.com",
+      "seller": "Amazon Resale",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/Warehouse-Deals/b?ie=UTF8&node=10158976011",
+      "seller_id": null,
+      "seller_rating": null,
+      "seller_ratings_count": null,
+      "seller_percentage": null
+    },
+    {
+      "position": 3,
+      "currency": "USD",
+      "price": "$66.02",
+      "condition": "Used - Like New",
+      "shipping_details": null,
+      "delivery": "FREE delivery Monday, February 24 Or fastest delivery Sunday, February 23 . Order within 10 hrs 32 mins",
+      "fulfilled_by_amazon": true,
+      "ships_from": "Amazon.com",
+      "seller": "Amazon Resale",
+      "seller_condition_notes": "Looks and functions as if it were new. Moderate packaging damage observed during inspection.",
+      "seller_url": "https://www.amazon.com/Warehouse-Deals/b?ie=UTF8&node=10158976011",
+      "seller_id": null,
+      "seller_rating": null,
+      "seller_ratings_count": null,
+      "seller_percentage": null
+    },
+    {
+      "position": 4,
+      "currency": "USD",
+      "price": "$99.99",
+      "condition": "Used - Like New",
+      "shipping_details": null,
+      "delivery": "FREE delivery February 26 - March 4 . Details Or fastest delivery Wednesday, February 26 . Details",
+      "fulfilled_by_amazon": false,
+      "ships_from": "UltimateDeal4U",
+      "seller": "UltimateDeal4U",
+      "seller_condition_notes": "Fully tested in great condition with all accessories.",
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=A2902DYUO7HLYB&isAmazonFulfilled=0&asin=B08141GQQG&ref_=olp_merch_name_3",
+      "seller_id": "A2902DYUO7HLYB",
+      "seller_rating": "4.5",
+      "seller_ratings_count": "(560 ratings)",
+      "seller_percentage": "94% positive over last 12 months"
+    },
+    {
+      "position": 5,
+      "currency": "USD",
+      "price": "$119.00",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery Monday, February 24 Or fastest delivery Sunday, February 23 . Order within 10 hrs 32 mins",
+      "fulfilled_by_amazon": true,
+      "ships_from": "Amazon.com",
+      "seller": "HALF TIME",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=A2AWKZBCPMNLY2&isAmazonFulfilled=1&asin=B08141GQQG&ref_=olp_merch_name_4",
+      "seller_id": "A2AWKZBCPMNLY2",
+      "seller_rating": "5",
+      "seller_ratings_count": "(20180 ratings)",
+      "seller_percentage": "98% positive over last 12 months"
+    },
+    {
+      "position": 6,
+      "currency": "USD",
+      "price": "$127.99",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery February 26 - March 4 . Details Or fastest delivery Wednesday, February 26 . Details",
+      "fulfilled_by_amazon": false,
+      "ships_from": "UltimateDeal4U",
+      "seller": "UltimateDeal4U",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=A2902DYUO7HLYB&isAmazonFulfilled=0&asin=B08141GQQG&ref_=olp_merch_name_5",
+      "seller_id": "A2902DYUO7HLYB",
+      "seller_rating": "4.5",
+      "seller_ratings_count": "(560 ratings)",
+      "seller_percentage": "94% positive over last 12 months"
+    },
+    {
+      "position": 7,
+      "currency": "USD",
+      "price": "$131.99",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery February 21 - 24 . Order within 23 hrs 32 mins . Details",
+      "fulfilled_by_amazon": false,
+      "ships_from": "Electronic Express",
+      "seller": "Electronic Express",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=ASH1H6YCFH4EF&isAmazonFulfilled=0&asin=B08141GQQG&ref_=olp_merch_name_6",
+      "seller_id": "ASH1H6YCFH4EF",
+      "seller_rating": "4.5",
+      "seller_ratings_count": "(91633 ratings)",
+      "seller_percentage": "90% positive over last 12 months"
+    },
+    {
+      "position": 8,
+      "currency": "USD",
+      "price": "$131.99",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery February 21 - 24 . Details",
+      "fulfilled_by_amazon": false,
+      "ships_from": "Electronic Express",
+      "seller": "Electronic Express",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=ASH1H6YCFH4EF&isAmazonFulfilled=0&asin=B08141GQQG&ref_=olp_merch_name_7",
+      "seller_id": "ASH1H6YCFH4EF",
+      "seller_rating": "4.5",
+      "seller_ratings_count": "(91633 ratings)",
+      "seller_percentage": "90% positive over last 12 months"
+    },
+    {
+      "position": 9,
+      "currency": "USD",
+      "price": "$139.00",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery Monday, February 24 Or fastest delivery Sunday, February 23 . Order within 10 hrs 32 mins",
+      "fulfilled_by_amazon": true,
+      "ships_from": "Amazon.com",
+      "seller": "ScRetail.",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=A18U086ZNXZ25A&isAmazonFulfilled=1&asin=B08141GQQG&ref_=olp_merch_name_8",
+      "seller_id": "A18U086ZNXZ25A",
+      "seller_rating": "5",
+      "seller_ratings_count": "(55 ratings)",
+      "seller_percentage": "97% positive over last 12 months"
+    },
+    {
+      "position": 10,
+      "currency": "USD",
+      "price": "$139.99",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery Monday, February 24 Or fastest delivery Sunday, February 23 . Order within 10 hrs 32 mins",
+      "fulfilled_by_amazon": true,
+      "ships_from": "Amazon.com",
+      "seller": "Star Elite",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=ASNOXQ3GYAI1O&isAmazonFulfilled=1&asin=B08141GQQG&ref_=olp_merch_name_9",
+      "seller_id": "ASNOXQ3GYAI1O",
+      "seller_rating": "4.5",
+      "seller_ratings_count": "(329 ratings)",
+      "seller_percentage": "86% positive over last 12 months"
+    },
+    {
+      "position": 11,
+      "currency": "USD",
+      "price": "$175.02",
+      "condition": "New",
+      "shipping_details": null,
+      "delivery": "FREE delivery March 5 - 12 . Details Or fastest delivery February 28 - March 5 . Details",
+      "fulfilled_by_amazon": false,
+      "ships_from": "OneDealOutlet Online",
+      "seller": "OneDealOutlet Online",
+      "seller_condition_notes": null,
+      "seller_url": "https://www.amazon.com/gp/aag/main?ie=UTF8&seller=A4UCFL9LU89NR&isAmazonFulfilled=0&asin=B08141GQQG&ref_=olp_merch_name_10",
+      "seller_id": "A4UCFL9LU89NR",
+      "seller_rating": "3.5",
+      "seller_ratings_count": "(9307 ratings)",
+      "seller_percentage": "58% positive over last 12 months"
+    }
+  ]
+}
+```
+
+Generate the Markdown article below:

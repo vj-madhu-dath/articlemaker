@@ -1,0 +1,14 @@
+{
+  "query": {
+    "keyword": "example",
+    "page": 1
+  },
+  "search_results": [
+    {
+      "id": "1",
+      "name": "Example Product",
+      "price": "99.99",
+      "currency": "USD"
+    }
+  ]
+}

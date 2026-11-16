@@ -1,0 +1,242 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article based on the provided configuration.
+
+### Tone & Style
+- Professional, technical yet accessible, solution-oriented.
+- Use Markdown with standard heading hierarchies (##, ###).
+- Provide step-by-step instructions with numbered lists where appropriate.
+
+### Article Structure
+1.  **Title:** `Automate Amazon Data Collection with n8n [2026 Guide]`
+2.  **Introduction:** Briefly state why manual Amazon data collection is slow and how automating with n8n and ScrapeHero solves it.
+3.  **What the Workflow Does:** Expand on this description: "It get's keywords from a sheet form a google sheet. Searches Amazon using the API. For each keyword it builds a sheet and stores the items listed in the first page. So that means it must remove items that were listed before and not currently; add new rows that weren't listed before". Mention that it uses the unique identifier `asin` to prevent duplicates in Google Sheets.
+4.  **Before You Automate:** A prerequisite list (Accounts for n8n, Google Sheets, ScrapeHero).
+5.  **Overview:** High-level summary of the workflow steps.
+6.  **Build the Workflow:** 
+    Explain the workflow step-by-step.
+    CRITICAL: For the ScrapeHero step, describe using the *dedicated ScrapeHero n8n node*. Mention setting up the credentials slot. Configure the node parameters exactly as follows:
+    {
+    "apiSelection": "Amazon Search API",
+    "textInput": "{{ $json.query }}",
+    "countryCode": "US",
+    "pages": 4
+}
+    Refer to these output fields to map: ['query', 'search_results'].
+7.  **Test the Workflow:** Instructions for the first run and subsequent update runs.
+8.  **How this Workflow Helps Your Business:** Expand on these benefits: write the business benefits yourself.
+9.  **Best Practices:** Bulleted list of do's and don'ts.
+10. **Ways to Extend the Workflow:** Bulleted list of advanced features.
+11. **Wrapping Up:** Conclusion summarizing the value proposition and a CTA for ScrapeHero.
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+
+
+### Reference n8n Workflow
+(Use this to accurately describe the steps)
+```json
+{
+  "name": "Automate Amazon with ScrapeHero",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "Queries"
+      },
+      "name": "Get Queries",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "apiSelection": "Amazon Search API",
+        "textInput": "{{ $json.query }}",
+        "countryCode": "US",
+        "pages": 4
+      },
+      "name": "ScrapeHero",
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ],
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": 0,
+              "name": "query",
+              "value": "{{ $json.query }}"
+            },
+            {
+              "id": 1,
+              "name": "search_results",
+              "value": "{{ $json.search_results }}"
+            }
+          ]
+        }
+      },
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_DOCUMENT_ID",
+        "sheetName": "Results",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "{{ $json.query }}",
+            "search_results": "{{ $json.search_results }}"
+          },
+          "matchingColumns": [
+            "asin"
+          ]
+        }
+      },
+      "name": "Update Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1000,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Queries": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Update Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the data extraction part)
+```json
+{
+  "query": {
+    "keyword": "example",
+    "page": 1
+  },
+  "search_results": [
+    {
+      "id": "1",
+      "name": "Example Product",
+      "price": "99.99",
+      "currency": "USD"
+    }
+  ]
+}
+```
+
+Generate the Markdown article below:

@@ -1,0 +1,21 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description":" This n8n workflowstart by using a schedule trigger. The schedule trigger will trigger the creation of a sheet inside a spreadsheet. It will make a request to the Scrapehero Amazon search API using the Scrapehero node, not the HTTP request node. The response will first be split out. A filter node will filter those listings that contain both regular and sale price. The edit field will get only the required fields, including the difference and the percentage discount. The values will be stored inside the sheet created by the Create Sheet Google Sheet.",
+  "scrapehero": {
+    "api_selection": "Amazon Search API",
+    "unique_identifier": "asin",
+    "node_parameters": {
+      "apiSelection": "Amazon Search API",
+      "textInput": "{{ $json.query }}",
+      "countryCode": "US",
+      "pages": 4
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "write the business benefits yourself"
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}

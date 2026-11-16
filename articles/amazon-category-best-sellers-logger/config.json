@@ -1,0 +1,24 @@
+{
+  "platform": "Amazon",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "Extracts Amazon Category Best Sellers using ScrapeHero, unpacks product_listings, and appends rank, ASIN, product name, rating, and price to Google Sheets.",
+  "scrapehero": {
+    "api_selection": "Amazon Best Seller",
+    "unique_identifier": "asin",
+    "node_parameters": {
+      "apiSelection": "Amazon Best Seller",
+      "categoryUrl": "={{ $json['Category URL'] }}",
+      "countryCode": "US"
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "Identify fast-moving and trending products across key Amazon categories in real time.",
+    "Monitor competitor ranking shifts and pricing movements automatically.",
+    "Eliminate manual catalog checks with scheduled automated extractions.",
+    "Build proprietary historical Best Seller Rank (BSR) datasets for predictive analytics.",
+    "Fuel e-commerce inventory and restocking decisions with structured market signals."
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}
