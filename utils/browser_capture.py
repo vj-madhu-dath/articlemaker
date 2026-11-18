@@ -52,7 +52,7 @@ def get_workflow_id(article_dir: str) -> Optional[str]:
 def extract_node_name(el) -> str:
     """Extracts node name from canvas node element, ignoring badge tokens."""
     full_text = el.inner_text().strip()
-    ignore_tokens = {'done', 'loop', 'kept', '1 item', '4 items', '2 items', '0 items', 'execute workflow', 'manual', 'true', 'false', '1', '2'}
+    ignore_tokens = {'done', 'loop', 'kept', 'success', 'error', 'waiting', 'running', 'failed', 'canceled', 'cancelled', 'skipped', '1 item', '4 items', '2 items', '0 items', 'execute workflow', 'manual', 'true', 'false', '1', '2'}
     lines = [l.strip() for l in full_text.split('\n') if l.strip()]
     valid_lines = [l for l in lines if l.lower() not in ignore_tokens and not l.startswith('read:') and not l.startswith('appendOrUpdate:') and not l.startswith('append:') and not l.startswith('amazon') and not l.startswith('create:')]
     if valid_lines:
@@ -80,8 +80,12 @@ def capture_side_panel_search(page, query: str, out_path: str):
         # Take full 1920x1080 screenshot
         page.screenshot(path=out_path)
         
-        # Dynamically locate the search item row to align arrow with 10px margin
-        item_row = page.locator(f'[class*="_itemsRenderer_"] > div:has-text("{query}"), [class*="_items_"] > div:has-text("{query}"), [class*="node-creator-item"]:has-text("{query}")').first
+        # Dynamically locate the search item card to align arrow with 10px margin
+        item_row = page.locator(f'[class*="creatorNode"]:has-text("{query}")').first
+        if item_row.count() == 0 or not item_row.is_visible():
+            item_row = page.locator(f'[class*="nodeItem"]:has-text("{query}")').first
+        if item_row.count() == 0 or not item_row.is_visible():
+            item_row = page.locator(f'[class*="_itemsRenderer_"] > div:has-text("{query}"), [class*="_items_"] > div:has-text("{query}"), [class*="node-creator-item"]:has-text("{query}")').first
         if item_row.count() == 0 or not item_row.is_visible():
             # Fallback to general item
             item_row = page.locator(f'[class*="item"]:has-text("{query}")').first
@@ -182,14 +186,21 @@ def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: b
     
     # 1. Dynamic Parameter Bounding Box
     box = None
-    if "asin" in nl or "read" in nl or "keyword" in nl or "get row" in nl:
-        box = get_param_group_box(page, ['Document', 'Sheet'])
+    if "create spreadsheet" in nl:
+        box = get_param_group_box(page, ['Title'])
     elif "create sheet" in nl:
         box = get_param_group_box(page, ['Document', 'Title'])
+    elif "get row" in nl:
+        if nl.endswith("1"):
+            box = get_param_group_box(page, ['Document', 'Sheet', 'Filter', 'Column', 'Value'])
+        else:
+            box = get_param_group_box(page, ['Document', 'Sheet'])
+    elif "asin" in nl or nl.startswith("read") or "keyword" in nl:
+        box = get_param_group_box(page, ['Document', 'Sheet'])
     elif "loop" in nl:
         box = get_param_group_box(page, ['Batch Size'])
     elif "scrapehero" in nl:
-        box = get_param_group_box(page, ['API', 'ASIN', 'Country Code', 'Keyword'])
+        box = get_param_group_box(page, ['API', 'ASIN', 'Country Code', 'Keyword', 'Category URL', 'Best Seller'])
     elif "split out" in nl:
         box = get_param_group_box(page, ['Fields To Split Out'])
     elif "filter" in nl or "kept" in nl:
@@ -197,11 +208,17 @@ def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: b
     elif nl == "if" or nl == "if1":
         box = get_param_group_box(page, ['condition'])
     elif "edit fields" in nl:
-        box = get_param_group_box(page, ['Fields to Set', 'Count'])
+        box = get_param_group_box(page, ['Fields to Set', 'Count', 'Rank', 'ASIN'])
+        if box:
+            for inp in page.locator('.node-parameters-wrapper input').all():
+                fb = inp.bounding_box()
+                if fb and fb['y'] > box[1] + 20:
+                    box = (box[0], int(fb['y'] - 12), box[2], box[3])
+                    break
     elif "sort" in nl:
         box = get_param_group_box(page, ['Type', 'Order'])
     elif "update" in nl or "save deals" in nl or "append" in nl:
-        box = get_param_group_box(page, ['Document', 'Sheet', 'Mapping Column Mode', 'Values to Send', 'Lowest New Price', 'ASIN', 'Product Name', 'Previous FBA Count', 'Columns'])
+        box = get_param_group_box(page, ['Document', 'Sheet', 'Mapping Column Mode', 'Values to Send', 'Lowest New Price', 'ASIN', 'Product Name', 'Previous FBA Count', 'Columns', 'Rank'])
     elif "chat" in nl or "message" in nl:
         box = get_param_group_box(page, ['Space Name or ID', 'Text', 'Space'])
     elif "schedule trigger" in nl:
@@ -343,6 +360,24 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
         # 4. Iterate over canvas nodes and capture NDVs
         nodes = page.locator('[data-test-id="canvas-node"]').all()
         print(f"\n📍 Capturing NDVs for {len(nodes)} canvas nodes...")
+
+        # Exact alt-text matches for nodes whose generic keywords would also
+        # match other screenshots in the same article (category logger).
+        specific_alt_patterns = {
+            "Get row(s) in sheet": ["read category urls"],
+            "Get row(s) in sheet1": ["filter the category row"],
+            "Create spreadsheet": ["create a category spreadsheet"],
+            "Update row in sheet": ["save the tracking spreadsheet id"],
+            "Create sheet": ["create a dated tab"],
+            "Append row in sheet": ["append best seller ranks"],
+            "If": ["check for an existing tracking spreadsheet"],
+        }
+        available_specifics = {
+            name: pats
+            for name, pats in specific_alt_patterns.items()
+            if any(p in it["alt_text"].lower() for it in items for p in pats)
+        }
+
         for idx, el in enumerate(nodes, 1):
             try:
                 node_name = extract_node_name(el)
@@ -358,11 +393,21 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                         alt_l = alt.lower()
                         if it["is_workflow_overview"] or "searching and adding" in alt_l or "pasting scrapehero" in alt_l:
                             continue
-                        if "asin" in node_name.lower() and "asin" in alt_l:
+                        if node_name in available_specifics:
+                            if any(p in alt_l for p in available_specifics[node_name]):
+                                matched_items.append(it)
+                            continue
+                        if "get row" in node_name.lower():
+                            if node_name.endswith("1"):
+                                if "filter" in alt_l or "category row" in alt_l or "tracking" in alt_l:
+                                    matched_items.append(it)
+                            elif "read" in alt_l or "category url" in alt_l:
+                                matched_items.append(it)
+                        elif "asin" in node_name.lower() and "asin" in alt_l:
                             matched_items.append(it)
-                        elif "get row" in node_name.lower() and ("read" in alt_l or "get row" in alt_l or "asin" in alt_l):
+                        elif "create spreadsheet" in node_name.lower() and "spreadsheet" in alt_l:
                             matched_items.append(it)
-                        elif "create sheet" in node_name.lower() and "create sheet" in alt_l:
+                        elif "create sheet" in node_name.lower() and ("create sheet" in alt_l or "dated tab" in alt_l):
                             matched_items.append(it)
                         elif "keyword" in node_name.lower() and "keyword" in alt_l:
                             matched_items.append(it)
@@ -382,7 +427,7 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                             matched_items.append(it)
                         elif "sort" in node_name.lower() and "sort" in alt_l:
                             matched_items.append(it)
-                        elif "update" in node_name.lower() and ("update" in alt_l or "lowest price" in alt_l):
+                        elif "update" in node_name.lower() and ("update" in alt_l or "save" in alt_l or "lowest price" in alt_l):
                             matched_items.append(it)
                         elif "append" in node_name.lower() and ("append" in alt_l or "dated tab" in alt_l or "updated fba" in alt_l):
                             matched_items.append(it)

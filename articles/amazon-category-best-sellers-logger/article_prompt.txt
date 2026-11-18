@@ -1,0 +1,774 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article in a **tutorial style** based on the provided configuration and reference workflow.
+
+### Tone & Style Guide
+- **Practical Mentor:** Conversational, hands-on senior engineer walkthrough.
+- **Pronoun Rules:**
+  - Never use "we" in the tutorial, explanation, or overview sections. Use phrasing like "this guide shows", "this workflow uses", or imperative steps.
+  - Never use "you will learn".
+  - DO use "we" ONLY in the final CTA paragraph when referencing ScrapeHero's enterprise data services.
+- **Tone & Language to Avoid:**
+  - Avoid fluff, buzzwords, and academic lecturing.
+  - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to..."). Do not instruct the reader to rename nodes.
+- **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
+- **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
+- **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
+- **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
+
+### Mandatory Article Structure
+1.  **SEO Metadata (Above H1):**
+    - Place SEO metadata block strictly above the H1 title in this exact format:
+      [SEO Meta]
+      Focus Keyword: [Primary Keyword]
+      SEO Title: [Title with brackets or primary keyword]
+      SEO Description: [Active voice description under 160 characters]
+      [/SEO Meta]
+    - Do NOT include a Table of Contents (no `#### Table of contents`).
+2.  **H1 Title:**
+    `# How to [Action/Goal] With n8n and ScrapeHero`
+3.  **Introduction:** Exactly two paragraphs.
+    - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
+    - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.
+4.  **Key Takeaways:**
+    - Heading: `### Key Takeaways` immediately following the intro numbered list.
+    - 5-6 practical takeaway bullet points.
+5.  **Before You Begin:**
+    - Prerequisites list/table (n8n instance, credentials, input data source, ScrapeHero API key).
+    - Sample markdown tables showing the required Google Sheet or database structure (headers and sample row). If using separate tabs (e.g. input queries vs output results), provide distinct tables for both tabs.
+6.  **Workflow Construction (Dynamic Multi-Phase Grouping):**
+    Organize the steps based on the workflow's architecture:
+    - **For Linear Pipelines (Extract -> Transform -> Load)**: Organize into 4 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Reading input data, Loop node, ScrapeHero node with Pin Data tip).
+        * For ScrapeHero node: Specify dedicated `n8n-nodes-scrapehero.scrapeHero` community node. Provide the standard 8-step credential setup:
+          1. Go to app.scrapehero.com -> 2. Sign in -> 3. Profile icon -> 4. Open API Key -> 5. Copy key -> 6. Return to n8n -> 7. Paste key -> 8. Save credentials.
+      - **Phase 2: `## [Transformation Phase]`** (Split Out, Edit Fields with markdown mapping table, Filter, Sort, in-step type parsing).
+      - **Phase 3: `## [Destination Phase]`** (Append/Update, target mapping, matching keys, Execute Once).
+      - **Phase 4: `## Test and Complete the Loop`** (Loopback wiring, test checklist).
+    - **For Two-Way Sync / Diff Workflows (Extract -> Format -> Read Existing -> Merge -> Upsert -> Delete)**: Organize into 3 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Input Source, Loop, ScrapeHero node with 8-step credential walkthrough and Pin Data tip, Split Out, Edit Fields with markdown mapping table).
+      - **Phase 2: `## [Compare & Sync Phase]`** (e.g., `## Compare and Update the Rankings` - Read Existing, Merge non-matches, compound-key upsert, bottom-up sort and delete).
+      - **Phase 3: `## Test and Complete the Loop`** (Loopback connection, zero-match loop guardrail using Always Output Data + Filter, test checklist).
+
+    *Nodes in this workflow to incorporate into these phases in execution order:*
+1. **Schedule Trigger** (`n8n-nodes-base.scheduleTrigger`)
+   Parameters: {"rule": {"interval": [{}]}}
+2. **Get row(s) in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"documentId": {"__rl": true, "value": "", "mode": "list", "cachedResultName": "Amazon Best Sellers", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Categories", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"}, "filtersUI": {"values": []}, "options": {}}
+3. **Loop Over Items** (`n8n-nodes-base.splitInBatches`)
+   Parameters: {"options": {}}
+4. **ScrapeHero** (`n8n-nodes-scrapehero.scrapeHero`)
+   Parameters: {"api": "amazonBestSeller", "amazonBestSellerUrl": "={{ $json[\"Category URL\"] }}"}
+5. **Split Out** (`n8n-nodes-base.splitOut`)
+   Parameters: {"fieldToSplitOut": "product_listings", "options": {}}
+6. **Edit Fields** (`n8n-nodes-base.set`)
+   Parameters: {"assignments": {"assignments": [{"id": "66aacde4-39ad-4d27-b978-931ef5e432c1", "name": "Rank", "value": "={{ $('Split Out').item.json.rank }}", "type": "number"}, {"id": "f8eb8a34-4052-4ea0-959d-89658abb4287", "name": "ASIN", "value": "={{ $('Split Out').item.json.asin }}", "type": "string"}, {"id": "6c6f63f7-2160-412e-9d8a-b013786e6f52", "name": "Name", "value": "={{ $('Split Out').item.json.name }}", "type": "string"}, {"id": "f10b6858-cf66-4ae8-b781-088332c309e6", "name": "Rating Count", "value": "={{ $('Split Out').item.json.ratings_count }}", "type": "number"}, {"id": "13cf642c-72e2-4489-9338-d37a6060bf34", "name": "Sale Price", "value": "={{ $('Split Out').item.json.sale_price }}", "type": "string"}, {"id": "57e15257-6a9b-4b96-a588-cbe2998eeae9", "name": "Is Prime", "value": "={{ $('Split Out').item.json.is_prime }}", "type": "boolean"}, {"id": "7ce244a9-b295-4d47-b648-9e388ea580af", "name": "Product URL", "value": "={{ $('Split Out').item.json.product_url }}", "type": "string"}]}, "options": {}}
+7. **Create spreadsheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"resource": "spreadsheet", "title": "={{ $('Loop Over Items').item.json[\"Category URL\"].split('/')[3].replaceAll('-',' ') }}", "options": {}}
+8. **If** (`n8n-nodes-base.if`)
+   Parameters: {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3}, "conditions": [{"id": "877a4c9a-f082-4edb-80c0-77dd0e2e7930", "leftValue": "={{ $json[\"Tracking Sheet ID\"] }}", "rightValue": "", "operator": {"type": "string", "operation": "empty", "singleValue": true}}], "combinator": "and"}, "options": {}}
+9. **Update row in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "update", "documentId": {"__rl": true, "value": "", "mode": "list", "cachedResultName": "Amazon Best Sellers", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Categories", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit#gid=0"}, "columns": {"mappingMode": "defineBelow", "value": {"Tracking Sheet ID": "={{ $json.spreadsheetId }}", "row_number": "={{ $('If').item.json.row_number }}"}, "matchingColumns": ["row_number"], "schema": [{"id": "Category URL", "displayName": "Category URL", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": true}, {"id": "Tracking Sheet ID", "displayName": "Tracking Sheet ID", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true}, {"id": "row_number", "displayName": "row_number", "required": false, "defaultMatch": false, "display": true, "type": "number", "canBeUsedToMatch": true, "readOnly": true, "removed": false}], "attemptToConvertTypes": false, "convertFieldsToString": false}, "options": {}}
+10. **Get row(s) in sheet1** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"documentId": {"__rl": true, "value": "", "mode": "list", "cachedResultName": "Amazon Best Sellers", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"}, "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Categories", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit#gid=0"}, "filtersUI": {"values": [{"lookupColumn": "Category URL", "lookupValue": "={{ $('Loop Over Items').item.json[\"Category URL\"] }}"}]}, "options": {}}
+11. **Create sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "create", "documentId": {"__rl": true, "value": "={{ $json[\"Tracking Sheet ID\"] }}", "mode": "id"}, "title": "={{ $now.format('yyyy-MM-dd::hh:mm') }}", "options": {}}
+12. **Append row in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "append", "documentId": {"__rl": true, "value": "={{ $('Create sheet').first().json.spreadsheetId }}", "mode": "id"}, "sheetName": {"__rl": true, "value": "={{ $('Create sheet').first().json.sheetId }}", "mode": "id"}, "columns": {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": [], "attemptToConvertTypes": false, "convertFieldsToString": false}, "options": {}}
+7.  **Business Benefits:**
+    - Heading: `## What This Unlocks for Your Business`
+    - Exactly 5 concrete business use cases formatted as bullet points with bold lead-ins, closing with a link to ScrapeHero Cloud / Marketplace.
+8.  **Next Steps:**
+    - Heading: `## Next Steps` (3-4 actionable extension ideas with direct action titles).
+9.  **Wrapping Up:** Exactly three to four paragraphs:
+    - Paragraph 1: Value of the automated DIY workflow.
+    - Paragraph 2: CTA to get ScrapeHero API key + offer to build custom APIs.
+    - Paragraph 3: Managed enterprise scraping service pitch using "we" (link to scrapehero.com).
+10. **Frequently Asked Questions:** (Absolute last section).
+    - Heading: `## Frequently Asked Questions`
+    - 3-6 practical questions using `###` headers, addressing the reader with "you" (answering PAA and technical queries without filler).
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+**Primary KW (Volume - KD - Intent)**
+
+* n8n amazon best seller tracker
+
+**Secondary KWs (Volume - KD - Intent)**
+
+* amazon category best sellers logger
+* track amazon best sellers automatically
+* amazon best seller rank tracking api
+* n8n amazon best seller scraper
+* automate amazon best seller logger
+
+**Google People Also Ask**
+
+* How to track Amazon Best Sellers automatically?
+* Can you scrape Amazon Best Sellers with n8n?
+* What is the Amazon Best Seller Rank (BSR)?
+* How often does Amazon update Best Seller lists?
+* How to export Amazon Best Sellers to Google Sheets?
+
+**Related Searches**
+
+* amazon best sellers scraper free
+* n8n amazon scraping workflow
+* amazon best seller rank api
+* log amazon best sellers to google sheets
+* automate amazon category ranking
+
+**AI-Search (AEO) Question Keywords (Use these as your H2 or H3 headers)**
+
+* How do I build an Amazon Best Seller logger in n8n?
+* How do I extract product_listings from Amazon Best Seller API results?
+* How do I append Amazon Best Seller ranks to Google Sheets?
+* What is the best Amazon Best Seller scraper API for n8n?
+* How often should I log Amazon Category Best Sellers?
+
+**Suggested SEO Title (With Brackets)**
+
+* n8n Amazon Best Seller Tracker [Log Category Best Sellers Automatically]
+* How to Automate Amazon Best Seller Tracking with n8n and ScrapeHero
+
+**Internal Links**
+
+* [https://www.scrapehero.com/amazon-scraping-apis/](https://www.scrapehero.com/amazon-scraping-apis/)
+* [https://www.scrapehero.com/amazon-scraping-services/](https://www.scrapehero.com/amazon-scraping-services/)
+* [https://www.scrapehero.com/data-driven-amazon-ranking/](https://www.scrapehero.com/data-driven-amazon-ranking/)
+* [https://www.scrapehero.com/automate-amazon-product-scraping-with-n8n-and-scrapehero/](https://www.scrapehero.com/automate-amazon-product-scraping-with-n8n-and-scrapehero/)
+* [https://www.scrapehero.com/scrape-amazon-product-data/](https://www.scrapehero.com/scrape-amazon-product-data/)
+
+### Reference n8n Workflow JSON
+(Extract node names, types, parameters, connections from here)
+```json
+{
+  "name": "Amazon Best Sellers",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        288
+      ],
+      "id": "44060001-746a-4d0e-b74f-b7b56dcdd7e6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Amazon Best Sellers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Categories",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        288
+      ],
+      "id": "530305bd-c91e-493c-91c5-acf13b1b848d",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "id",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        288
+      ],
+      "id": "8bb610cf-8ea1-4362-ad02-5caf63107a0b",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "api": "amazonBestSeller",
+        "amazonBestSellerUrl": "={{ $json[\"Category URL\"] }}"
+      },
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        672,
+        288
+      ],
+      "id": "de1378de-3536-4313-b157-22c921d29f75",
+      "name": "ScrapeHero",
+      "retryOnFail": false,
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "",
+          "name": "ScrapeHero account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "product_listings",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        912,
+        272
+      ],
+      "id": "616cf0f6-1191-4f9d-a817-c09e864db1b2",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "66aacde4-39ad-4d27-b978-931ef5e432c1",
+              "name": "Rank",
+              "value": "={{ $('Split Out').item.json.rank }}",
+              "type": "number"
+            },
+            {
+              "id": "f8eb8a34-4052-4ea0-959d-89658abb4287",
+              "name": "ASIN",
+              "value": "={{ $('Split Out').item.json.asin }}",
+              "type": "string"
+            },
+            {
+              "id": "6c6f63f7-2160-412e-9d8a-b013786e6f52",
+              "name": "Name",
+              "value": "={{ $('Split Out').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "f10b6858-cf66-4ae8-b781-088332c309e6",
+              "name": "Rating Count",
+              "value": "={{ $('Split Out').item.json.ratings_count }}",
+              "type": "number"
+            },
+            {
+              "id": "13cf642c-72e2-4489-9338-d37a6060bf34",
+              "name": "Sale Price",
+              "value": "={{ $('Split Out').item.json.sale_price }}",
+              "type": "string"
+            },
+            {
+              "id": "57e15257-6a9b-4b96-a588-cbe2998eeae9",
+              "name": "Is Prime",
+              "value": "={{ $('Split Out').item.json.is_prime }}",
+              "type": "boolean"
+            },
+            {
+              "id": "7ce244a9-b295-4d47-b648-9e388ea580af",
+              "name": "Product URL",
+              "value": "={{ $('Split Out').item.json.product_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        384
+      ],
+      "id": "78d2abe0-db9a-4684-b023-aaa3fe1f8ea6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "={{ $('Loop Over Items').item.json[\"Category URL\"].split('/')[3].replaceAll('-',' ') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        0
+      ],
+      "id": "6b3f3bab-404b-4972-b1ea-959c024acea6",
+      "name": "Create spreadsheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "877a4c9a-f082-4edb-80c0-77dd0e2e7930",
+              "leftValue": "={{ $json[\"Tracking Sheet ID\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "6491c831-6b5d-44c6-afd5-6763e00d1af3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Amazon Best Sellers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Categories",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Tracking Sheet ID": "={{ $json.spreadsheetId }}",
+            "row_number": "={{ $('If').item.json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Category URL",
+              "displayName": "Category URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tracking Sheet ID",
+              "displayName": "Tracking Sheet ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "a24bbe21-d3a2-49a8-96ef-89b385144ecf",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Amazon Best Sellers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Categories",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Category URL",
+              "lookupValue": "={{ $('Loop Over Items').item.json[\"Category URL\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "4437b700-9a6c-4b3a-a906-3afe07fb4613",
+      "name": "Get row(s) in sheet1",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json[\"Tracking Sheet ID\"] }}",
+          "mode": "id"
+        },
+        "title": "={{ $now.format('yyyy-MM-dd::hh:mm') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        192
+      ],
+      "id": "f16ba1f1-2883-4854-902a-2e9118f254eb",
+      "name": "Create sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create sheet').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create sheet').first().json.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        464
+      ],
+      "id": "38c95390-710d-4c90-8089-14c866191b34",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Create sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "49226859-e4e0-4683-a668-c28441c070c7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "nodeGroups": [],
+  "id": "gUbDSM69FcGiDuyN",
+  "tags": []
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the fields extracted)
+```json
+{
+  "category": "Electronics",
+  "product_listings": [
+    {
+      "rank": 1,
+      "asin": "B0791TX5P5",
+      "name": "Fire TV Stick streaming media player with Alexa built in, includes Alexa Voice Remote, HD, easy set-up, released 2019",
+      "ratings_count": 191042,
+      "rating": "4.5",
+      "sale_price": "$39.99 - $74.98",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/51ZdmnHKukL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Fire-TV-Stick-with-Alexa-Voice-Remote/dp/B0791TX5P5/ref=zg_bs_electronics_1?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 2,
+      "asin": "B07FZ8S74R",
+      "name": "Echo Dot (3rd Gen) - Smart speaker with Alexa - Charcoal",
+      "ratings_count": 369774,
+      "rating": "4.7",
+      "sale_price": "$49.99 - $89.98",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/6182S7MYC2L._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Echo-Dot/dp/B07FZ8S74R/ref=zg_bs_electronics_2?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 3,
+      "asin": "B079QHML21",
+      "name": "Fire TV Stick 4K streaming device with Alexa built in, Dolby Vision, includes Alexa Voice Remote, latest release",
+      "ratings_count": 203179,
+      "rating": "4.5",
+      "sale_price": "$49.99 - $82.97",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/51CgKGfMelL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Fire-TV-Stick-4K-with-Alexa-Voice-Remote/dp/B079QHML21/ref=zg_bs_electronics_3?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 4,
+      "asin": "B07FKR6KXF",
+      "name": "Fire 7 Tablet (7\" display, 16 GB) - Black",
+      "ratings_count": 63239,
+      "rating": "4.3",
+      "sale_price": "$49.99 - $107.97",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/514mBrHxPnL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Fire-Tablet-7/dp/B07FKR6KXF/ref=zg_bs_electronics_4?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    },
+    {
+      "rank": 5,
+      "asin": "B07PP49ZDW",
+      "name": "Kindle Paperwhite \u2013 Now Waterproof with more than 2x the Storage \u2013 Includes Special Offers + Kindle Unlimited (with auto-renewal)",
+      "ratings_count": 39777,
+      "rating": "4.4",
+      "sale_price": "$129.99 - $179.99",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/61eAq6gg-XL._AC_UL200_SR200,200_.jpg",
+      "is_prime": false,
+      "product_url": "https://www.amazon.com/Kindle-Paperwhite-Waterproof-Unlimited-auto-renewal/dp/B07PP49ZDW/ref=zg_bs_electronics_5?_encoding=UTF8&psc=1&refRID=HGTDEZQFV03MQVMCPD44"
+    }
+  ],
+  "child_categories": [
+    {
+      "category": "Accessories & Supplies",
+      "url": "https://www.amazon.com/Best-Sellers-Electronics-Accessories-Supplies/zgbs/electronics/281407/ref=zg_bs_nav_e_1_e"
+    },
+    {
+      "category": "GPS & Navigation",
+      "url": "https://www.amazon.com/Best-Sellers-Electronics-GPS-Finders-Accessories/zgbs/electronics/172526/ref=zg_bs_nav_e_1_e"
+    }
+  ],
+  "next": "https://get.scrapehero.com/amz/best-sellers/?url=https%3A//www.amazon.com/Best-Sellers-Electronics/zgbs/electronics/ref%3Dzg_bs_pg_2%3F_encoding%3DUTF8%26pg%3D2",
+  "url": "https://www.amazon.com/Best-Sellers-Electronics/zgbs/electronics/&pg=1"
+}
+```
+
+Generate the Markdown article below:

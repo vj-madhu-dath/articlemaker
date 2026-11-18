@@ -1,259 +1,407 @@
 {
-  "name": "Amazon - Category Best-Sellers Logger",
+  "name": "Amazon Best Sellers",
   "nodes": [
     {
       "parameters": {
         "rule": {
           "interval": [
             {
-              "field": "hours",
-              "hoursInterval": 24
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
             }
           ]
         }
       },
-      "id": "schedule-trigger-1",
-      "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
+      "typeVersion": 1.4,
       "position": [
         0,
-        0
-      ]
+        288
+      ],
+      "id": "44060001-746a-4d0e-b74f-b7b56dcdd7e6",
+      "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "operation": "getAll",
-        "documentId": "YOUR_DOCUMENT_ID",
-        "sheetName": "Categories",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Amazon Best Sellers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Categories",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "filtersUI": {
+          "values": []
+        },
         "options": {}
       },
-      "id": "get-categories-1",
-      "name": "Get Categories",
       "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
+      "typeVersion": 4.7,
       "position": [
-        240,
-        0
+        224,
+        288
       ],
+      "id": "530305bd-c91e-493c-91c5-acf13b1b848d",
+      "name": "Get row(s) in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "id": "id",
           "name": "Google Sheets account"
         }
       }
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "loop-over-items-1",
-      "name": "Loop Over Items",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        480,
-        0
-      ]
+        448,
+        288
+      ],
+      "id": "8bb610cf-8ea1-4362-ad02-5caf63107a0b",
+      "name": "Loop Over Items"
     },
     {
       "parameters": {
-        "apiSelection": "Amazon Best Seller",
-        "categoryUrl": "={{ $json['Category URL'] }}",
-        "countryCode": "US"
+        "api": "amazonBestSeller",
+        "amazonBestSellerUrl": "={{ $json[\"Category URL\"] }}"
       },
-      "id": "scrapehero-best-seller-1",
-      "name": "ScrapeHero",
       "type": "n8n-nodes-scrapehero.scrapeHero",
       "typeVersion": 1,
       "position": [
-        720,
-        0
+        672,
+        288
       ],
+      "id": "de1378de-3536-4313-b157-22c921d29f75",
+      "name": "ScrapeHero",
+      "retryOnFail": false,
       "credentials": {
         "scrapeHeroApi": {
-          "id": "YOUR_SCRAPEHERO_CREDENTIAL_ID",
+          "id": "",
           "name": "ScrapeHero account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "fieldToSplitOut": "product_listings",
         "options": {}
       },
-      "id": "split-out-listings-1",
-      "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        960,
-        0
-      ]
+        912,
+        272
+      ],
+      "id": "616cf0f6-1191-4f9d-a817-c09e864db1b2",
+      "name": "Split Out"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "assign-cat",
-              "name": "Category",
-              "value": "={{ $('Loop Over Items').item.json['Category Name'] || $('Loop Over Items').item.json['Category'] }}",
-              "type": "string"
-            },
-            {
-              "id": "assign-rank",
+              "id": "66aacde4-39ad-4d27-b978-931ef5e432c1",
               "name": "Rank",
-              "value": "={{ $json.rank }}",
-              "type": "string"
+              "value": "={{ $('Split Out').item.json.rank }}",
+              "type": "number"
             },
             {
-              "id": "assign-asin",
+              "id": "f8eb8a34-4052-4ea0-959d-89658abb4287",
               "name": "ASIN",
-              "value": "={{ $json.asin }}",
+              "value": "={{ $('Split Out').item.json.asin }}",
               "type": "string"
             },
             {
-              "id": "assign-name",
-              "name": "Product Name",
-              "value": "={{ $json.name }}",
+              "id": "6c6f63f7-2160-412e-9d8a-b013786e6f52",
+              "name": "Name",
+              "value": "={{ $('Split Out').item.json.name }}",
               "type": "string"
             },
             {
-              "id": "assign-rating",
-              "name": "Rating",
-              "value": "={{ $json.rating }}",
+              "id": "f10b6858-cf66-4ae8-b781-088332c309e6",
+              "name": "Rating Count",
+              "value": "={{ $('Split Out').item.json.ratings_count }}",
+              "type": "number"
+            },
+            {
+              "id": "13cf642c-72e2-4489-9338-d37a6060bf34",
+              "name": "Sale Price",
+              "value": "={{ $('Split Out').item.json.sale_price }}",
               "type": "string"
             },
             {
-              "id": "assign-price",
-              "name": "Price",
-              "value": "={{ $json.price || $json.sale_price }}",
-              "type": "string"
+              "id": "57e15257-6a9b-4b96-a588-cbe2998eeae9",
+              "name": "Is Prime",
+              "value": "={{ $('Split Out').item.json.is_prime }}",
+              "type": "boolean"
             },
             {
-              "id": "assign-date",
-              "name": "Logged Date",
-              "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+              "id": "7ce244a9-b295-4d47-b648-9e388ea580af",
+              "name": "Product URL",
+              "value": "={{ $('Split Out').item.json.product_url }}",
               "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "id": "edit-fields-1",
-      "name": "Edit Fields",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "typeVersion": 3.5,
       "position": [
-        1200,
+        1120,
+        384
+      ],
+      "id": "78d2abe0-db9a-4684-b023-aaa3fe1f8ea6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "={{ $('Loop Over Items').item.json[\"Category URL\"].split('/')[3].replaceAll('-',' ') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
         0
-      ]
+      ],
+      "id": "6b3f3bab-404b-4972-b1ea-959c024acea6",
+      "name": "Create spreadsheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "877a4c9a-f082-4edb-80c0-77dd0e2e7930",
+              "leftValue": "={{ $json[\"Tracking Sheet ID\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "6491c831-6b5d-44c6-afd5-6763e00d1af3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Amazon Best Sellers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Categories",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Tracking Sheet ID": "={{ $json.spreadsheetId }}",
+            "row_number": "={{ $('If').item.json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Category URL",
+              "displayName": "Category URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tracking Sheet ID",
+              "displayName": "Tracking Sheet ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "a24bbe21-d3a2-49a8-96ef-89b385144ecf",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Amazon Best Sellers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Categories",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/id/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Category URL",
+              "lookupValue": "={{ $('Loop Over Items').item.json[\"Category URL\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "4437b700-9a6c-4b3a-a906-3afe07fb4613",
+      "name": "Get row(s) in sheet1",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json[\"Tracking Sheet ID\"] }}",
+          "mode": "id"
+        },
+        "title": "={{ $now.format('yyyy-MM-dd::hh:mm') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        192
+      ],
+      "id": "f16ba1f1-2883-4854-902a-2e9118f254eb",
+      "name": "Create sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "append",
-        "documentId": "YOUR_DOCUMENT_ID",
-        "sheetName": "Best Sellers Log",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create sheet').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create sheet').first().json.sheetId }}",
+          "mode": "id"
+        },
         "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Category": "={{ $json.Category }}",
-            "Rank": "={{ $json.Rank }}",
-            "ASIN": "={{ $json.ASIN }}",
-            "Product Name": "={{ $json['Product Name'] }}",
-            "Rating": "={{ $json.Rating }}",
-            "Price": "={{ $json.Price }}",
-            "Logged Date": "={{ $json['Logged Date'] }}"
-          },
+          "mappingMode": "autoMapInputData",
+          "value": {},
           "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Category",
-              "displayName": "Category",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Rank",
-              "displayName": "Rank",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "ASIN",
-              "displayName": "ASIN",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Product Name",
-              "displayName": "Product Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Rating",
-              "displayName": "Rating",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Price",
-              "displayName": "Price",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Logged Date",
-              "displayName": "Logged Date",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ]
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
-      "id": "append-row-1",
-      "name": "Append row in sheet",
       "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
+      "typeVersion": 4.7,
       "position": [
-        1440,
-        0
+        1344,
+        464
       ],
+      "id": "38c95390-710d-4c90-8089-14c866191b34",
+      "name": "Append row in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "id": "",
           "name": "Google Sheets account"
         }
       }
@@ -265,14 +413,14 @@
       "main": [
         [
           {
-            "node": "Get Categories",
+            "node": "Get row(s) in sheet",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Categories": {
+    "Get row(s) in sheet": {
       "main": [
         [
           {
@@ -291,6 +439,11 @@
             "node": "ScrapeHero",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -300,6 +453,13 @@
         [
           {
             "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -313,6 +473,11 @@
             "node": "Edit Fields",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -322,6 +487,39 @@
         [
           {
             "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Create sheet",
             "type": "main",
             "index": 0
           }
@@ -342,6 +540,15 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
-  }
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "49226859-e4e0-4683-a668-c28441c070c7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "nodeGroups": [],
+  "id": "gUbDSM69FcGiDuyN",
+  "tags": []
 }
