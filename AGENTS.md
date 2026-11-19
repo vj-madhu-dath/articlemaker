@@ -246,3 +246,14 @@ When generating or updating tutorial articles and screenshots:
    - `Focus Keyword` is the primary keyword.
    - Do not instruct the reader to rename nodes.
 
+## Progressive n8n Selector Capture Notes
+
+For articles that need a live node-selector screenshot after each node addition:
+
+- Use an article-specific `capture_plan.json` with ordered nodes, search queries, parent nodes, output indexes, exact alt text, and exact actions for app-category results.
+- Build each staging canvas from nodes added **before** the current stage. For stage index `i` (1-based), use `i - 1` nodes; including the current node can make automation click the wrong plus handle.
+- Keep only connections whose endpoints are present in that stage. Defer future nodes and loop-back connections until the article reaches those wiring steps.
+- Google Sheets search can return an app-category card instead of an action. Drill into the app and point the arrow at the exact action, not the category card.
+- n8n canvas panning needs a middle-button drag or Space+left drag; plain left drag does not pan. Start on empty canvas and move the relevant parent node into view before opening its plus handle.
+- For authenticated internal REST calls, use the browser context request with the `browser-id` header and saved browser auth state; page `fetch` may omit the Secure auth cookie. On n8n 2.x, archive a staging workflow before deleting it.
+- After capture, verify every article placeholder with `generate.py screenshots <article> --list`, confirm screenshots are live 1920×1080 dark-mode captures, and check that no staging workflows remain.

@@ -225,6 +225,12 @@ def sync_common_screenshots(article_path: str) -> Dict[str, Any]:
     images_dir = os.path.join(article_dir, "images")
     os.makedirs(images_dir, exist_ok=True)
 
+    # Articles with a capture_plan.json are built from live screenshots only.
+    # Never backfill them with generic catalog mocks or synthetic diagrams.
+    if os.path.exists(os.path.join(article_dir, "capture_plan.json")):
+        print("ℹ️  Live-capture article detected (capture_plan.json); skipping catalog/synthetic auto-sync.")
+        return {"synced_count": 0, "synced_items": [], "total_images": len(parse_article_images(article_path))}
+
     items = parse_article_images(article_path)
     with open(article_path, 'r', encoding='utf-8') as f:
         content = f.read()

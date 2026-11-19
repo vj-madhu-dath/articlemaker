@@ -20,6 +20,7 @@ from PIL import Image
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROFILE_DIR = os.path.join(ROOT_DIR, ".n8n_browser_profile")
+AUTH_STATE_PATH = os.path.join(PROFILE_DIR, "auth_state.json")
 CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 N8N_BASE_URL = os.environ.get("N8N_BASE_URL", "http://localhost:5678")
 
@@ -59,55 +60,532 @@ def extract_node_name(el) -> str:
         return valid_lines[0]
     return lines[0] if lines else "Node"
 
-def capture_side_panel_search(page, query: str, out_path: str):
-    """Opens node creator panel, searches for query, and dynamically marks the result card."""
+def dismiss_overlays(page):
+    """Closes any open panel or onboarding popover."""
     page.keyboard.press("Escape")
-    page.wait_for_timeout(500)
-    
+    page.wait_for_timeout(300)
     got_it = page.locator('button:has-text("Got it")')
     if got_it.count() > 0:
-        got_it.click()
-        page.wait_for_timeout(300)
-        
+        try:
+            got_it.click()
+            page.wait_for_timeout(250)
+        except Exception:
+            pass
+
+
+def node_creator_open(page) -> bool:
+    search_input = page.locator('input[placeholder*="Search"], [data-test-id="node-creator-search"]').first
+    return search_input.count() > 0 and search_input.is_visible()
+
+
+def find_canvas_node(page, node_name: str):
+    """Finds a canvas node element by its visible name."""
+    nodes = page.locator('[data-test-id="canvas-node"]').all()
+    for el in nodes:
+        try:
+            if extract_node_name(el) == node_name:
+                return el
+        except Exception:
+            continue
+    for el in nodes:
+        try:
+            if extract_node_name(el).lower() == node_name.lower():
+                return el
+        except Exception:
+            continue
+    return None
+
+
+def open_node_creator(page, parent_name: Optional[str] = None, output_index: int = 0) -> bool:
+    """Opens the node creator panel, preferring the plus handle on the parent output."""
+    dismiss_overlays(page)
+
+    if parent_name:
+        node = find_canvas_node(page, parent_name)
+        if node:
+            try:
+                node.hover()
+                page.wait_for_timeout(400)
+                node_box = node.bounding_box()
+
+                plus_buttons = []
+                seen = set()
+                candidates = list(node.locator('[data-test-id="canvas-handle-plus"]').all())
+                if node_box:
+                    candidates += page.locator('[data-test-id="canvas-handle-plus"]').all()
+                for el in candidates:
+                    try:
+                        b = el.bounding_box()
+                        if not b or not el.is_visible():
+                            continue
+                        key = (round(b['x']), round(b['y']))
+                        if key in seen:
+                            continue
+                        if node_box and b['x'] < node_box['x'] + node_box['width'] - 8:
+                            continue
+                        if node_box and b['x'] > node_box['x'] + node_box['width'] + 220:
+                            continue
+                        if node_box and not (node_box['y'] - 20 <= b['y'] <= node_box['y'] + node_box['height'] + 20):
+                            continue
+                        seen.add(key)
+                        plus_buttons.append((b['y'], el))
+                    except Exception:
+                        continue
+
+                plus_buttons.sort(key=lambda item: item[0])
+                if plus_buttons:
+                    idx = min(max(output_index, 0), len(plus_buttons) - 1)
+                    plus_buttons[idx][1].click()
+                    page.wait_for_timeout(900)
+                    if node_creator_open(page):
+                        return True
+            except Exception as e:
+                print(f"   ⚠️ Plus-handle open failed for '{parent_name}': {e}")
+
+    # Empty-canvas flow: click the "Add first step" trigger tile.
+    if not parent_name:
+        for selector in (
+            '[data-test-id="canvas-add-first-step"]',
+            'button:has-text("Add first step")',
+            'div:has-text("Add first step")',
+        ):
+            candidate = page.locator(selector).first
+            if candidate.count() > 0 and candidate.is_visible():
+                try:
+                    candidate.click()
+                    page.wait_for_timeout(900)
+                    if node_creator_open(page):
+                        return True
+                except Exception:
+                    continue
+
     page.keyboard.press("n")
     page.wait_for_timeout(1000)
-    
-    search_input = page.locator('input[placeholder*="Search"], [data-test-id="node-creator-search"]').first
-    if search_input.count() > 0 and search_input.is_visible():
-        search_input.fill(query)
-        page.wait_for_timeout(1000)
-        
-        # Take full 1920x1080 screenshot
-        page.screenshot(path=out_path)
-        
-        # Dynamically locate the search item card to align arrow with 10px margin
-        item_row = page.locator(f'[class*="creatorNode"]:has-text("{query}")').first
-        if item_row.count() == 0 or not item_row.is_visible():
-            item_row = page.locator(f'[class*="nodeItem"]:has-text("{query}")').first
-        if item_row.count() == 0 or not item_row.is_visible():
-            item_row = page.locator(f'[class*="_itemsRenderer_"] > div:has-text("{query}"), [class*="_items_"] > div:has-text("{query}"), [class*="node-creator-item"]:has-text("{query}")').first
-        if item_row.count() == 0 or not item_row.is_visible():
-            # Fallback to general item
-            item_row = page.locator(f'[class*="item"]:has-text("{query}")').first
-        if item_row.count() == 0 or not item_row.is_visible():
-            # Fallback to first item in side panel list
-            item_row = page.locator('[class*="item-list"] > div, [class*="list-item"]').first
-            
-        if item_row.count() > 0 and item_row.is_visible():
-            b = item_row.bounding_box()
-            if b:
-                tip_x = int(b['x'] - 10)
-                tip_y = int(b['y'] + b['height'] / 2)
-                markup_helper.draw_arrow(out_path, tip_x=tip_x, tip_y=tip_y, direction='right', length=120, out_path=out_path)
-                print(f"   🎯 Dynamically aligned arrow on '{query}' at ({tip_x}, {tip_y})")
-        else:
-            # Fallback based on verified 1920x1080 side panel coordinates
-            markup_helper.draw_arrow(out_path, tip_x=1525, tip_y=220, direction='right', length=120, out_path=out_path)
-            
-        page.keyboard.press("Escape")
-        page.wait_for_timeout(500)
+    if node_creator_open(page):
         return True
+
+    # Last-resort empty-canvas fallback.
+    if parent_name:
+        for selector in (
+            '[data-test-id="canvas-add-first-step"]',
+            'button:has-text("Add first step")',
+            'div:has-text("Add first step")',
+        ):
+            candidate = page.locator(selector).first
+            if candidate.count() > 0 and candidate.is_visible():
+                try:
+                    candidate.click()
+                    page.wait_for_timeout(900)
+                    if node_creator_open(page):
+                        return True
+                except Exception:
+                    continue
+
     return False
+
+
+def find_result_card(page, query: str):
+    """Locates the node creator result card for the searched node."""
+    cards = page.locator('[class*="creatorNode"]').all()
+    if not cards:
+        cards = page.locator('[class*="nodeItem"]').all()
+
+    for el in cards:
+        try:
+            if not el.is_visible():
+                continue
+            first_line = el.inner_text().strip().split('\n')[0].strip()
+            if first_line.lower().startswith(query.lower()):
+                return el
+        except Exception:
+            continue
+
+    for selector in (
+        f'[class*="creatorNode"]:has-text("{query}")',
+        f'[class*="nodeItem"]:has-text("{query}")',
+        f'[class*="node-creator-item"]:has-text("{query}")',
+        f'[class*="item"]:has-text("{query}")',
+        '[class*="item-list"] > div, [class*="list-item"]',
+    ):
+        candidate = page.locator(selector).first
+        if candidate.count() > 0 and candidate.is_visible():
+            return candidate
+    return None
+
+
+def find_card_by_name(page, name: str):
+    """Finds a node creator card whose title exactly matches the given name."""
+    cards = page.locator('[class*="creatorNode"]').all()
+    if not cards:
+        cards = page.locator('[class*="nodeItem"]').all()
+
+    target = name.strip().lower()
+    for el in cards:
+        try:
+            if not el.is_visible():
+                continue
+            first_line = el.inner_text().strip().split('\n')[0].strip().lower()
+            if first_line == target:
+                return el
+        except Exception:
+            continue
+    return None
+
+
+def is_app_category_card(card) -> bool:
+    """True when the card drills into an app's action list instead of adding a node."""
+    try:
+        return card.locator('button:has(svg[data-icon="arrow-right"])').count() > 0
+    except Exception:
+        return False
+
+
+def capture_search_result(page, query: str, out_path: str, action: Optional[str] = None) -> bool:
+    """Searches inside an already-open node creator and screenshots the result card.
+
+    When ``action`` is provided (for app nodes such as Google Sheets), drill into
+    the app card and point the arrow at the specific action the reader needs.
+    """
+    search_input = page.locator('input[placeholder*="Search"], [data-test-id="node-creator-search"]').first
+    if search_input.count() == 0 or not search_input.is_visible():
+        return False
+
+    search_input.fill(query)
+    page.wait_for_timeout(1000)
+
+    highlighted = find_result_card(page, query)
+    highlighted_label = query
+
+    if action:
+        action_card = find_card_by_name(page, action)
+        if action_card is None and highlighted is not None and is_app_category_card(highlighted):
+            highlighted.click()
+            page.wait_for_timeout(1000)
+            action_card = find_card_by_name(page, action)
+        if action_card is not None:
+            highlighted = action_card
+            highlighted_label = action
+
+    page.screenshot(path=out_path)
+
+    if highlighted is not None:
+        b = highlighted.bounding_box()
+        if b:
+            tip_x = int(b['x'] - 10)
+            tip_y = int(b['y'] + b['height'] / 2)
+            markup_helper.draw_arrow(out_path, tip_x=tip_x, tip_y=tip_y, direction='right', length=120, out_path=out_path)
+            print(f"   🎯 Dynamically aligned arrow on '{highlighted_label}' at ({tip_x}, {tip_y})")
+    else:
+        # Fallback based on verified 1920x1080 side panel coordinates
+        markup_helper.draw_arrow(out_path, tip_x=1525, tip_y=220, direction='right', length=120, out_path=out_path)
+
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(400)
+    return True
+
+
+def capture_side_panel_search(page, query: str, out_path: str):
+    """Opens node creator panel, searches for query, and dynamically marks the result card."""
+    if not open_node_creator(page):
+        return False
+    return capture_search_result(page, query, out_path)
+
+
+# ---------------------------------------------------------------------------
+# Progressive ("building one node at a time") capture
+# ---------------------------------------------------------------------------
+
+CAPTURE_PLAN_FILE = "capture_plan.json"
+
+
+def load_capture_plan(article_dir: str) -> Optional[dict]:
+    plan_path = os.path.join(article_dir, CAPTURE_PLAN_FILE)
+    if not os.path.exists(plan_path):
+        return None
+    with open(plan_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def _rest_call(page, method: str, path: str, payload=None) -> dict:
+    """Calls n8n's internal REST API with the authenticated browser session."""
+    browser_id = page.evaluate("() => localStorage.getItem('n8n-browserId') || localStorage.getItem('browserId') || ''")
+    headers = {"Accept": "application/json"}
+    if browser_id:
+        headers["browser-id"] = browser_id
+    kwargs = {"method": method, "headers": headers}
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+        kwargs["data"] = json.dumps(payload)
+
+    response = page.context.request.fetch(f"{N8N_BASE_URL}{path}", **kwargs)
+    text = response.text()
+    try:
+        data = json.loads(text)
+    except Exception:
+        data = {"raw": text}
+    return {"ok": response.ok, "status": response.status, "data": data}
+
+
+def rest_get_workflow(page, workflow_id: str) -> dict:
+    result = _rest_call(page, "GET", f"/rest/workflows/{workflow_id}")
+    if not result.get("ok"):
+        raise RuntimeError(f"Could not fetch workflow {workflow_id}: HTTP {result.get('status')}")
+    data = result.get("data") or {}
+    return data.get("data", data)
+
+
+def rest_create_workflow(page, payload: dict) -> str:
+    result = _rest_call(page, "POST", "/rest/workflows", payload)
+    if not result.get("ok"):
+        raise RuntimeError(f"Could not create staging workflow: HTTP {result.get('status')} {str(result.get('data'))[:300]}")
+    data = result.get("data") or {}
+    workflow = data.get("data", data)
+    workflow_id = workflow.get("id")
+    if not workflow_id:
+        raise RuntimeError(f"Staging workflow response did not include an id: {str(data)[:300]}")
+    return workflow_id
+
+
+def rest_archive_workflow(page, workflow_id: str):
+    """Archives a workflow. n8n 2.x requires this before a workflow can be deleted."""
+    result = _rest_call(page, "POST", f"/rest/workflows/{workflow_id}/archive", {})
+    if not result.get("ok"):
+        raise RuntimeError(f"Could not archive staging workflow {workflow_id}: HTTP {result.get('status')} {str(result.get('data'))[:200]}")
+
+
+def rest_delete_workflow(page, workflow_id: str):
+    archive_error = None
+    try:
+        rest_archive_workflow(page, workflow_id)
+    except Exception as e:
+        archive_error = e
+
+    result = _rest_call(page, "DELETE", f"/rest/workflows/{workflow_id}")
+    if not result.get("ok"):
+        detail = str(result.get('data'))[:200]
+        if archive_error:
+            raise RuntimeError(f"Could not delete staging workflow {workflow_id}: HTTP {result.get('status')} {detail}; archive failed: {archive_error}")
+        raise RuntimeError(f"Could not delete staging workflow {workflow_id}: HTTP {result.get('status')} {detail}")
+
+
+def build_stage_payload(live_workflow: dict, plan: dict, built_count: int) -> dict:
+    """
+    Builds the canvas state before the current stage: only nodes the reader has
+    already added. Connections are kept only when both endpoints exist and the
+    target comes later, so loop-back wiring appears only after the wiring section.
+    """
+    stages = plan.get("stages", [])
+    names = [stage["node"] for stage in stages[:max(0, built_count)]]
+    order = {name: idx for idx, name in enumerate(names)}
+
+    nodes = [dict(node) for node in live_workflow.get("nodes", []) if node.get("name") in order]
+    nodes.sort(key=lambda node: order.get(node.get("name"), 999))
+
+    connections = {}
+    for source, connection in (live_workflow.get("connections") or {}).items():
+        if source not in order:
+            continue
+        kept_connection = {}
+        for connection_type, branches in connection.items():
+            kept_branches = []
+            for branch in branches:
+                kept_branches.append([
+                    target for target in branch
+                    if target.get("node") in order and order[target["node"]] > order[source]
+                ])
+            kept_connection[connection_type] = kept_branches
+        if any(any(branch) for branch in kept_connection.values()):
+            connections[source] = kept_connection
+
+    payload = {
+        "name": plan.get("workflow_name") or live_workflow.get("name", "Workflow"),
+        "nodes": nodes,
+        "connections": connections,
+        "settings": live_workflow.get("settings") or {},
+        "active": False,
+        "meta": {"stagingCapture": True},
+    }
+
+    pin_data = {
+        name: value for name, value in (live_workflow.get("pinData") or {}).items()
+        if name in order
+    }
+    if pin_data:
+        payload["pinData"] = pin_data
+
+    return payload
+
+
+def reset_zoom_to_100(page):
+    """Restores the canvas to 100% zoom so partial stages match the final screenshots."""
+    for selector in (
+        '[data-test-id="zoom-reset"]',
+        '[data-test-id="reset-zoom"]',
+        'button[title*="Reset zoom" i]',
+        'button[aria-label*="Reset zoom" i]',
+    ):
+        button = page.locator(selector).first
+        if button.count() > 0 and button.is_visible():
+            try:
+                button.click()
+                page.wait_for_timeout(500)
+                return
+            except Exception:
+                continue
+
+
+def click_zoom_button(page, direction: str) -> bool:
+    for selector in (
+        f'[data-test-id="zoom-{direction}-button"]',
+        f'[data-test-id="zoom-{direction}"]',
+        f'button[title*="Zoom {direction}" i]',
+        f'button[aria-label*="Zoom {direction}" i]',
+    ):
+        button = page.locator(selector).first
+        if button.count() > 0 and button.is_visible():
+            try:
+                button.click()
+                page.wait_for_timeout(250)
+                return True
+            except Exception:
+                continue
+    return False
+
+
+def ensure_100_percent_zoom(page):
+    """Normalizes the canvas to roughly 100% zoom using node card width as the signal."""
+    for _ in range(10):
+        node = page.locator('[data-test-id="canvas-node"]').first
+        if node.count() == 0:
+            return
+        box = node.bounding_box()
+        if not box:
+            return
+        width = box['width']
+        if 165 <= width <= 235:
+            return
+        if width > 235:
+            if not click_zoom_button(page, "out"):
+                page.mouse.click(273, 1008)
+        else:
+            if not click_zoom_button(page, "in"):
+                page.mouse.click(305, 1008)
+        page.wait_for_timeout(300)
+
+
+def find_empty_canvas_point(page):
+    """Finds a spot on the canvas that is not covered by a node, for panning."""
+    boxes = []
+    for el in page.locator('[data-test-id="canvas-node"]').all():
+        try:
+            box = el.bounding_box()
+            if box:
+                boxes.append(box)
+        except Exception:
+            continue
+
+    def is_empty(x, y):
+        for box in boxes:
+            if (box['x'] - 16 <= x <= box['x'] + box['width'] + 16 and
+                    box['y'] - 16 <= y <= box['y'] + box['height'] + 16):
+                return False
+        try:
+            over_node = page.evaluate(
+                "([x, y]) => { const el = document.elementFromPoint(x, y); return !!(el && el.closest('[data-test-id=\"canvas-node\"]')); }",
+                [x, y],
+            )
+        except Exception:
+            over_node = False
+        return not over_node
+
+    for x, y in (
+        (300, 200), (300, 900), (1450, 900), (800, 900), (300, 500),
+        (1400, 200), (800, 150), (500, 700), (1200, 500), (1000, 900),
+        (1450, 300), (400, 350),
+    ):
+        if is_empty(x, y):
+            return x, y
+    return 300, 200
+
+
+def pan_canvas(page, dx: int, dy: int):
+    """Pans the canvas using a middle-button drag on empty space."""
+    start_x, start_y = find_empty_canvas_point(page)
+    page.mouse.move(start_x, start_y)
+    page.mouse.down(button="middle")
+    page.mouse.move(start_x + dx, start_y + dy, steps=15)
+    page.mouse.up(button="middle")
+    page.wait_for_timeout(300)
+
+
+def pan_node_into_view(page, node_name: str, target_x: int = 1250, target_y: int = 560, attempts: int = 8):
+    """Pans the canvas so the parent node sits comfortably left of the node creator panel."""
+    for _ in range(attempts):
+        node = find_canvas_node(page, node_name)
+        if not node:
+            return False
+        box = node.bounding_box()
+        if not box:
+            return False
+        center_x = box['x'] + box['width'] / 2
+        center_y = box['y'] + box['height'] / 2
+        dx = int(target_x - center_x)
+        dy = int(target_y - center_y)
+        if abs(dx) <= 30 and abs(dy) <= 30:
+            return True
+        pan_canvas(page, max(-650, min(650, dx)), max(-450, min(450, dy)))
+    return True
+
+
+def capture_progressive_stages(page, workflow_id: str, plan: dict, article_path: str, images_dir: str, items: List[Dict], workflow_url: str):
+    """Captures each node-selector screenshot against a canvas that only contains nodes built so far."""
+    stages = plan.get("stages", [])
+    available_alts = {item["alt_text"] for item in items}
+
+    print(f"\n🧱 Capturing {len(stages)} progressive build stages...")
+    live_workflow = rest_get_workflow(page, workflow_id)
+    created_ids = []
+
+    try:
+        for index, stage in enumerate(stages, 1):
+            alt = stage.get("alt", "")
+            if alt not in available_alts:
+                print(f"   ⏭️  [{index}/{len(stages)}] No article placeholder for: {alt}")
+                continue
+
+            payload = build_stage_payload(live_workflow, plan, index - 1)
+            stage_id = rest_create_workflow(page, payload)
+            created_ids.append(stage_id)
+
+            page.goto(f"{N8N_BASE_URL}/workflow/{stage_id}", wait_until="networkidle")
+            page.wait_for_timeout(2500)
+            reset_zoom_to_100(page)
+            ensure_100_percent_zoom(page)
+
+            if stage.get("parent"):
+                pan_node_into_view(page, stage["parent"])
+
+            print(f"👉 [{index}/{len(stages)}] Stage canvas with {len(payload['nodes'])} node(s), adding '{stage['node']}'...")
+            if not open_node_creator(page, stage.get("parent"), int(stage.get("output_index", 0))):
+                print(f"   ⚠️ Node creator did not open for '{stage['node']}'")
+                continue
+
+            filename = screenshot_manager.sanitize_filename(alt)
+            filepath = os.path.join(images_dir, filename)
+            if capture_search_result(page, stage.get("search", stage["node"]), filepath, action=stage.get("action")):
+                print(f"   ✅ Saved partial-canvas selector: images/{filename}")
+    finally:
+        # Return to the real workflow before deleting the temporary ones.
+        try:
+            page.goto(workflow_url, wait_until="networkidle")
+            page.wait_for_timeout(1500)
+        except Exception:
+            pass
+        for stage_id in created_ids:
+            try:
+                rest_delete_workflow(page, stage_id)
+            except Exception as e:
+                print(f"   ⚠️ Could not delete staging workflow {stage_id}: {e}")
 
 def get_param_group_box(page, param_keywords: List[str]) -> Optional[tuple]:
     """
@@ -249,7 +727,7 @@ def apply_ndv_markup(node_name: str, shot_path: str, page, show_execute_arrow: b
             tip_y = int(pin_box['y'] + pin_box['height'] / 2)
             markup_helper.draw_arrow(shot_path, tip_x=tip_x, tip_y=tip_y, direction="up-right", length=90, out_path=shot_path)
 
-def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, theme: str = "dark"):
+def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, theme: str = "dark", progressive: Optional[bool] = None):
     article_path = screenshot_manager.find_article_file(article_dir)
     images_dir = os.path.join(os.path.dirname(article_path), "images")
     os.makedirs(images_dir, exist_ok=True)
@@ -261,6 +739,13 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
         print(f"Error: Could not determine workflow ID for {article_dir}.")
         return False
 
+    capture_plan = load_capture_plan(os.path.dirname(article_path))
+    if progressive is None:
+        progressive = capture_plan is not None
+    if progressive and not capture_plan:
+        print("⚠️  Progressive capture requested but no capture_plan.json was found. Falling back to single-canvas capture.")
+        progressive = False
+
     wf_url = f"{N8N_BASE_URL}/workflow/{workflow_id}"
     print(f"\n🚀 Automating live 1920x1080 browser capture for: {os.path.basename(article_dir)} [Theme: {theme.upper()}]")
     print(f"🔗 Target: {wf_url}")
@@ -271,15 +756,27 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
             executable_path=CHROME_BIN if os.path.exists(CHROME_BIN) else None,
             headless=True,
             color_scheme=theme,
-            viewport={"width": 1920, "height": 1080},
-            args=["--no-sandbox"]
+            viewport={"width": 1920, "height": 1080}
         )
+        if os.path.exists(AUTH_STATE_PATH):
+            try:
+                with open(AUTH_STATE_PATH, 'r', encoding='utf-8') as f:
+                    auth_state = json.load(f)
+                cookies = auth_state.get("cookies", [])
+                if cookies:
+                    context.add_cookies(cookies)
+                    print(f"🔑 Restored {len(cookies)} auth cookie(s) from {os.path.basename(AUTH_STATE_PATH)}")
+            except Exception as e:
+                print(f"⚠️  Could not restore auth state: {e}")
+
         page = context.pages[0] if context.pages else context.new_page()
         page.goto(wf_url, wait_until="networkidle")
         page.wait_for_timeout(3500)
 
-        if "/signin" in page.url:
+        password_input = page.locator('input[type="password"]').first
+        if "/signin" in page.url or (password_input.count() > 0 and password_input.is_visible()):
             print("❌ Authentication failed. Please log in first.")
+            print("   Run: python3 utils/login_window.py")
             context.close()
             return False
 
@@ -300,32 +797,37 @@ def auto_capture_article(article_dir: str, workflow_id: Optional[str] = None, th
                 print(f"📸 Captured Complete Workflow Canvas (clean): images/{fn}")
 
         # 2. Capture Side Panel Search Steps ("Searching and adding ...")
-        for it in items:
-            alt = it["alt_text"]
-            alt_l = alt.lower()
-            if "searching and adding" in alt_l or "adding a split out node" in alt_l:
-                query = None
-                if "manual trigger" in alt_l:
-                    query = "Manual Trigger"
-                elif "schedule trigger" in alt_l:
-                    query = "Schedule Trigger"
-                elif "loop over items" in alt_l:
-                    query = "Loop Over Items"
-                elif "scrapehero" in alt_l:
-                    query = "ScrapeHero"
-                elif "split out" in alt_l:
-                    query = "Split Out"
-                elif "filter" in alt_l:
-                    query = "Filter"
-                elif "edit fields" in alt_l:
-                    query = "Edit Fields"
-                elif "sort" in alt_l:
-                    query = "Sort"
+        if progressive:
+            capture_progressive_stages(page, workflow_id, capture_plan, article_path, images_dir, items, wf_url)
+            page.keyboard.press("1")
+            page.wait_for_timeout(1000)
+        else:
+            for it in items:
+                alt = it["alt_text"]
+                alt_l = alt.lower()
+                if "searching and adding" in alt_l or "adding a split out node" in alt_l:
+                    query = None
+                    if "manual trigger" in alt_l:
+                        query = "Manual Trigger"
+                    elif "schedule trigger" in alt_l:
+                        query = "Schedule Trigger"
+                    elif "loop over items" in alt_l:
+                        query = "Loop Over Items"
+                    elif "scrapehero" in alt_l:
+                        query = "ScrapeHero"
+                    elif "split out" in alt_l:
+                        query = "Split Out"
+                    elif "filter" in alt_l:
+                        query = "Filter"
+                    elif "edit fields" in alt_l:
+                        query = "Edit Fields"
+                    elif "sort" in alt_l:
+                        query = "Sort"
 
-                if query:
-                    fn = screenshot_manager.sanitize_filename(alt)
-                    fp = os.path.join(images_dir, fn)
-                    capture_side_panel_search(page, query, fp)
+                    if query:
+                        fn = screenshot_manager.sanitize_filename(alt)
+                        fp = os.path.join(images_dir, fn)
+                        capture_side_panel_search(page, query, fp)
 
         # 3. Capture Credential Modal ("Pasting ScrapeHero Cloud API key")
         cred_items = [it for it in items if "pasting scrapehero" in it["alt_text"].lower() or "cloud api key" in it["alt_text"].lower()]
@@ -459,6 +961,7 @@ def main():
     parser.add_argument("article", help="Article directory or slug")
     parser.add_argument("--workflow-id", default=None, help="Explicit n8n workflow ID")
     parser.add_argument("--theme", default="dark", choices=["dark", "light"], help="UI theme (default: dark)")
+    parser.add_argument("--progressive", action="store_true", help="Capture selector screenshots stage by stage from capture_plan.json")
     args = parser.parse_args()
 
     article_dir = args.article
@@ -467,7 +970,7 @@ def main():
         if os.path.exists(cand):
             article_dir = cand
 
-    auto_capture_article(article_dir, args.workflow_id, args.theme)
+    auto_capture_article(article_dir, args.workflow_id, args.theme, progressive=args.progressive or None)
 
 if __name__ == "__main__":
     main()

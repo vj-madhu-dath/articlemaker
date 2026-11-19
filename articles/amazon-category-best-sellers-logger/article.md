@@ -64,7 +64,11 @@ Click the **plus icon** (+), search for **Schedule Trigger**, and add it to the 
 
 The workflow needs a list of categories to process. The Google Sheets node loads that list on every run.
 
-Add a **Google Sheets** node after the Schedule Trigger. Under **Resource**, select **Sheet Within Document**, and under **Operation**, select **Get Row(s) in Sheet**. Connect your Google Sheets account and configure:
+Add a **Google Sheets** node after the Schedule Trigger.
+
+![Searching and adding a Google Sheets node to read category URLs](images/Searching and adding a Google Sheets node to read category URLs.png)
+
+Under **Resource**, select **Sheet Within Document**, and under **Operation**, select **Get Row(s) in Sheet**. Connect your Google Sheets account and configure:
 
 1. **Document:** Select `Amazon Best Sellers` from the list.
 2. **Sheet:** Select `Categories`.
@@ -77,9 +81,11 @@ Click **Execute Step** to confirm that the category URLs and blank tracking IDs 
 
 Best Seller requests should run one category at a time. Sequential processing keeps API usage predictable and prevents rate-limit errors.
 
-Add a **Loop Over Items** node after the Google Sheets node. Keep the default **Batch Size** at `1`. Each category passes through the **loop** output, and the **done** output fires after the last row is processed.
+Add a **Loop Over Items** node after the Google Sheets node.
 
 ![Searching and adding a Loop Over Items node in an n8n workflow](images/Searching and adding a Loop Over Items node in an n8n workflow.png)
+
+Keep the default **Batch Size** at `1`. Each category passes through the **loop** output, and the **done** output fires after the last row is processed.
 
 ### 4. Fetch Live Rankings with ScrapeHero
 
@@ -123,7 +129,11 @@ Click **Execute Step** to test the first category. The response contains a `prod
 
 The API returns all ranked products inside one `product_listings` array. The Split Out node turns each product into a separate item so it can become a single row in Google Sheets.
 
-Add a **Split Out** node after the ScrapeHero node. In **Fields To Split Out**, enter:
+Add a **Split Out** node after the ScrapeHero node.
+
+![Searching and adding a Split Out node in an n8n workflow](images/Searching and adding a Split Out node in an n8n workflow.png)
+
+In **Fields To Split Out**, enter:
 
 ```javascript
 product_listings
@@ -137,7 +147,11 @@ Click **Execute Step**. Each ranked product now appears as an independent item w
 
 Raw API keys use snake_case and include nested values that are not ideal for a spreadsheet. The Edit Fields node renames them into clean column headers and assigns the correct data types.
 
-Add an **Edit Fields** node after the Split Out node. Add the following fields:
+Add an **Edit Fields** node after the Split Out node.
+
+![Searching and adding an Edit Fields node in an n8n workflow](images/Searching and adding an Edit Fields node in an n8n workflow.png)
+
+Add the following fields:
 
 | Field Name | Value | Type |
 | :--- | :--- | :--- |
@@ -159,7 +173,11 @@ The API also returns `rating` and `image`. Add them to the mapping if you want s
 
 Each category needs its own workbook. An If node checks whether the **Tracking Sheet ID** column is empty, which signals a category that has never been logged.
 
-Add an **If** node to the **loop** output of the Loop Over Items node, alongside the ScrapeHero node. Configure the condition:
+Add an **If** node to the **loop** output of the Loop Over Items node, alongside the ScrapeHero node.
+
+![Searching and adding an If node in an n8n workflow](images/Searching and adding an If node in an n8n workflow.png)
+
+Configure the condition:
 
 1. **Left Value:** `={{ $json["Tracking Sheet ID"] }}`
 2. **Operator:** String `is empty`
@@ -172,7 +190,11 @@ On the first run, the condition evaluates to `true` and the workflow creates a s
 
 The **Create spreadsheet** Google Sheets node builds a dedicated workbook for the current category.
 
-Connect the `true` output of the If node to the Google Sheets node and configure:
+Connect the `true` output of the If node to the new Google Sheets node.
+
+![Searching and adding a Google Sheets node to create a category spreadsheet](images/Searching and adding a Google Sheets node to create a category spreadsheet.png)
+
+Configure:
 
 1. **Resource:** Document
 2. **Operation:** Create
@@ -190,7 +212,11 @@ The expression extracts the category segment from the URL and converts hyphens t
 
 The new spreadsheet ID must be written back to the **Categories** tab so later runs know where to append data.
 
-Add a **Google Sheets** node after **Create spreadsheet** and configure:
+Add a **Google Sheets** node after **Create spreadsheet**.
+
+![Searching and adding a Google Sheets node to save the tracking spreadsheet ID](images/Searching and adding a Google Sheets node to save the tracking spreadsheet ID.png)
+
+Configure:
 
 1. **Resource:** Sheet Within Document
 2. **Operation:** Update Row in Sheet
@@ -212,7 +238,11 @@ Set **Column to match on** to **row_number**. This updates the exact row that su
 
 The logging path needs the saved spreadsheet ID for the current category. A second Google Sheets read resolves that value before a tab is created.
 
-Add a **Google Sheets** node after **Split Out** and connect the output of **Update row in sheet** to it as well. Configure:
+Add a **Google Sheets** node after **Split Out** and connect the output of **Update row in sheet** to it as well.
+
+![Searching and adding a Google Sheets node to look up the category row](images/Searching and adding a Google Sheets node to look up the category row.png)
+
+Configure:
 
 1. **Document:** `Amazon Best Sellers`
 2. **Sheet:** `Categories`
@@ -230,7 +260,11 @@ Enable **Execute Once** in the node settings so the lookup runs a single time fo
 
 Every run writes to a fresh tab, which keeps each snapshot separate and prevents one execution from overwriting another.
 
-Add a **Google Sheets** node after the category lookup and configure:
+Add a **Google Sheets** node after the category lookup.
+
+![Searching and adding a Google Sheets node to create a dated tab](images/Searching and adding a Google Sheets node to create a dated tab.png)
+
+Configure:
 
 1. **Resource:** Sheet Within Document
 2. **Operation:** Create
@@ -254,7 +288,11 @@ The timestamp names the tab with the run date and time, such as `2026-11-18::09:
 
 The final Google Sheets node writes the mapped ranking fields into the dated tab.
 
-Add an **Append row in sheet** node and connect both **Create sheet** and **Edit Fields** to its input. Configure:
+Add an **Append row in sheet** node and connect both **Create sheet** and **Edit Fields** to its input.
+
+![Searching and adding a Google Sheets node to append best seller ranks](images/Searching and adding a Google Sheets node to append best seller ranks.png)
+
+Configure:
 
 1. **Resource:** Sheet Within Document
 2. **Operation:** Append Row in Sheet

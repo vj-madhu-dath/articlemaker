@@ -147,7 +147,9 @@ Write a highly structured, instructional SEO article in a **tutorial style** bas
   - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
 - **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to..."). Do not instruct the reader to rename nodes.
 - **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
-- **Screenshot Placeholders:** Include markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`) after each major configuration step.
+- **Screenshot Placeholders:** Use markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`).
+  - For **every node the reader adds**, include a dedicated selector screenshot immediately after the add instruction, with alt text starting `Searching and adding ...`. Every node addition needs its own selector screenshot; never reuse one search screenshot for multiple nodes.
+  - Then include a `Configuring the ... node` screenshot after the node parameters are set. Do not use bare `add-image-url` placeholders.
 - **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
 - **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
 
@@ -546,7 +548,8 @@ def cmd_screenshots(args):
     if args.browser:
         from utils import browser_capture
         theme = getattr(args, 'theme', 'dark')
-        browser_capture.auto_capture_article(article_target, args.workflow_id, theme)
+        progressive = getattr(args, 'progressive', False) or None
+        browser_capture.auto_capture_article(article_target, args.workflow_id, theme, progressive=progressive)
         screenshot_manager.list_screenshots(article_path)
     elif args.sync:
         res = screenshot_manager.sync_common_screenshots(article_path)
@@ -561,6 +564,9 @@ def cmd_screenshots(args):
     else:
         # Default action: list status and sync if any ready
         screenshot_manager.list_screenshots(article_path)
+        if os.path.exists(os.path.join(os.path.dirname(article_path), "capture_plan.json")):
+            print("ℹ️  Live-capture article: run with --browser to regenerate screenshots from n8n.")
+            return
         items = screenshot_manager.parse_article_images(article_path)
         ready = [it for it in items if not it["exists"] and (it["catalog_match"] or it["is_workflow_overview"])]
         if ready:
@@ -605,6 +611,7 @@ def main():
     ss_parser.add_argument("--browser", action="store_true", help="Automate capture from running n8n browser instance")
     ss_parser.add_argument("--workflow-id", default=None, help="Explicit n8n workflow ID (optional)")
     ss_parser.add_argument("--theme", default="dark", choices=["dark", "light"], help="UI theme for capture (default: dark)")
+    ss_parser.add_argument("--progressive", action="store_true", help="Capture each selector screenshot against a partial build canvas (uses capture_plan.json)")
     ss_parser.add_argument("--sync", action="store_true", help="Auto-sync screenshots from common catalog and render workflow")
     ss_parser.add_argument("--list", action="store_true", help="List screenshot placeholders and their status")
     ss_parser.add_argument("--capture", action="store_true", help="Launch interactive clipboard quick-capture session")
