@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]</title>
+    <meta name="description" content="Track Glassdoor salary estimates by job ID with n8n and ScrapeHero, split ranges into numeric minimums and maximums, and save each observation to Google Sheets.">
+    <link rel="canonical" href="https://www.scrapehero.com/glassdoor-salary-range-tracker/">
+    
+    <!-- Open Graph -->
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]">
+    <meta property="og:description" content="Track Glassdoor salary estimates by job ID with n8n and ScrapeHero, split ranges into numeric minimums and maximums, and save each observation to Google Sheets.">
+    <meta property="og:url" content="https://www.scrapehero.com/glassdoor-salary-range-tracker/">
+    <meta property="og:site_name" content="ScrapeHero">
+    <meta property="article:published_time" content="2026-11-24T05:38:00.277734+00:00">
+    <meta property="article:modified_time" content="2026-11-24T05:38:00.277734+00:00">
+    <meta property="article:author" content="Madhu">
+    <meta property="article:section" content="n8n">
+    <meta property="article:tag" content="Glassdoor salary range tracker">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@scrapehero">
+    <meta name="twitter:site" content="@scrapehero">
+    <meta name="twitter:title" content="Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]">
+    <meta name="twitter:description" content="Track Glassdoor salary estimates by job ID with n8n and ScrapeHero, split ranges into numeric minimums and maximums, and save each observation to Google Sheets.">
+    <meta name="twitter:label1" content="Written by">
+    <meta name="twitter:data1" content="Madhu">
+    <meta name="twitter:label2" content="Est. reading time">
+    <meta name="twitter:data2" content="15 minutes">
+    
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Article",
+                "@id": "https://www.scrapehero.com/glassdoor-salary-range-tracker/#article",
+                "isPartOf": {"@id": "https://www.scrapehero.com/glassdoor-salary-range-tracker/"},
+                "author": {
+                    "name": "Madhu",
+                    "@id": "https://www.scrapehero.com/#/schema/person/0557ba95323826f344817663444d8775"
+                },
+                "headline": "Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]",
+                "datePublished": "2026-11-24T05:38:00.277734+00:00",
+                "dateModified": "2026-11-24T05:38:00.277734+00:00",
+                "mainEntityOfPage": {"@id": "https://www.scrapehero.com/glassdoor-salary-range-tracker/"},
+                "publisher": {"@id": "https://www.scrapehero.com/#organization"},
+                "keywords": ["Glassdoor salary range tracker", "n8n", "ScrapeHero", "Glassdoor", "salary tracker", "Google Sheets"],
+                "articleSection": ["n8n", "ScrapeHero Cloud Resources"],
+                "inLanguage": "en-US"
+            },
+            {
+                "@type": "WebPage",
+                "@id": "https://www.scrapehero.com/glassdoor-salary-range-tracker/",
+                "url": "https://www.scrapehero.com/glassdoor-salary-range-tracker/",
+                "name": "Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]",
+                "isPartOf": {"@id": "https://www.scrapehero.com/#website"},
+                "datePublished": "2026-11-24T05:38:00.277734+00:00",
+                "dateModified": "2026-11-24T05:38:00.277734+00:00",
+                "description": "Track Glassdoor salary estimates by job ID with n8n and ScrapeHero, split ranges into numeric minimums and maximums, and save each observation to Google Sheets.",
+                "breadcrumb": {"@id": "https://www.scrapehero.com/glassdoor-salary-range-tracker/#breadcrumb"},
+                "inLanguage": "en-US"
+            },
+            {
+                "@type": "BreadcrumbList",
+                "@id": "https://www.scrapehero.com/glassdoor-salary-range-tracker/#breadcrumb",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.scrapehero.com/"},
+                    {"@type": "ListItem", "position": 2, "name": "Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]"}
+                ]
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <style>
+        :root {
+            --sh-primary: #363636;
+            --sh-secondary: #363636;
+            --sh-text: #424242;
+            --sh-accent: #209CEE;
+            --sh-accent-hover: #006DDA;
+            --sh-bg: #FFFFFF;
+            --sh-bg-alt: #F9F7F6;
+            --sh-border: #DBDBDB;
+            --sh-code-bg: #F5F5F5;
+            --sh-table-header-bg: #363636;
+            --sh-table-header-text: #FFFFFF;
+            --sh-table-row-alt: #F5F5F5;
+            --sh-green: #23A455;
+            --sh-orange: #E66325;
+            --sh-red: #CF2E2E;
+            --sh-font-primary: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --sh-font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Monaco, monospace;
+            --container-max-width: 1140px;
+            --widgets-spacing: 20px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--sh-font-primary);
+            font-size: 1.0625rem;
+            line-height: 1.7;
+            color: var(--sh-text);
+            background-color: var(--sh-bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .page-wrapper {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        /* Header */
+        .site-header {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--sh-border);
+            background: var(--sh-bg);
+        }
+        
+        .site-branding {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .site-logo {
+            width: 135px;
+            height: auto;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1.5rem 0;
+            font-size: 0.875rem;
+            color: #707077;
+        }
+        
+        .breadcrumb a {
+            color: var(--sh-accent);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb span {
+            margin: 0 0.5rem;
+        }
+        
+        /* Article Header */
+        .article-header {
+            margin-bottom: 3rem;
+        }
+        
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #707077;
+        }
+        
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        
+        .author-name {
+            font-weight: 500;
+            color: var(--sh-primary);
+            text-decoration: none;
+        }
+        
+        .author-name:hover {
+            color: var(--sh-accent);
+        }
+        
+        .entry-title {
+            font-family: var(--sh-font-primary);
+            font-size: 2.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--sh-primary);
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 767px) {
+            .entry-title {
+                font-size: 1.9rem;
+            }
+        }
+        
+        /* Article Content */
+        .article-content {
+            font-size: 1.0625rem;
+            line-height: 1.7;
+        }
+        
+        .article-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .article-content strong {
+            font-weight: 600;
+            color: var(--sh-primary);
+        }
+        
+        .article-content em {
+            font-style: italic;
+        }
+        
+        .article-content a {
+            color: var(--sh-accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        
+        .article-content a:hover {
+            border-bottom-color: var(--sh-accent);
+        }
+        
+        /* Headings */
+        .article-content h2 {
+            font-family: var(--sh-font-primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            margin: 3rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--sh-border);
+        }
+        
+        .article-content h3 {
+            font-family: var(--sh-font-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            margin: 2.5rem 0 1rem;
+        }
+        
+        /* Code Blocks */
+        .article-content pre {
+            background: var(--sh-code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--sh-border);
+        }
+        
+        .article-content code {
+            font-family: var(--sh-font-mono);
+            font-size: 0.9em;
+        }
+        
+        .article-content pre code {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--sh-text);
+            background: none;
+            padding: 0;
+        }
+        
+        .article-content p code {
+            background: var(--sh-code-bg);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--sh-primary);
+        }
+        
+        /* Tables */
+        .wp-block-table-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        
+        .wp-block-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+        
+        .wp-block-table th {
+            background: var(--sh-table-header-bg);
+            color: var(--sh-table-header-text);
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            border: 1px solid var(--sh-border);
+        }
+        
+        .wp-block-table td {
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--sh-border);
+            vertical-align: top;
+        }
+        
+        .wp-block-table tbody tr.alt td {
+            background: var(--sh-table-row-alt);
+        }
+        
+        .wp-block-table tbody tr:hover td {
+            background: #f0f0f0;
+        }
+        
+        .wp-block-table td code {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        /* Lists */
+        .article-content ul, .article-content ol {
+            margin: 1.5rem 0 1.5rem 1.5rem;
+            padding-left: 1rem;
+        }
+        
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .article-content li::marker {
+            color: var(--sh-accent);
+        }
+        
+        /* Images */
+        .wp-block-image {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .wp-block-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .wp-element-caption {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: #707077;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        /* Horizontal Rule */
+        hr.wp-block-separator {
+            border: none;
+            border-top: 2px dotted var(--sh-border);
+            margin: 3rem 0;
+        }
+        
+        /* Callout Boxes */
+        .callout {
+            background: var(--sh-bg-alt);
+            border-left: 4px solid var(--sh-accent);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .callout.warning {
+            border-left-color: var(--sh-orange);
+            background: #FFF8F0;
+        }
+        
+        .callout.success {
+            border-left-color: var(--sh-green);
+            background: #F0FDF4;
+        }
+        
+        .callout.danger {
+            border-left-color: var(--sh-red);
+            background: #FEF2F2;
+        }
+        
+        /* FAQ Section */
+        .faq-section {
+            margin-top: 3rem;
+        }
+        
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--sh-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            background: var(--sh-bg-alt);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-question::after {
+            content: '+';
+            font-size: 1.25rem;
+            color: var(--sh-accent);
+            transition: transform 0.2s;
+        }
+        
+        .faq-item.open .faq-question::after {
+            transform: rotate(45deg);
+        }
+        
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item.open .faq-answer {
+            padding: 1.5rem;
+            max-height: 500px;
+        }
+        
+        .faq-answer p {
+            margin-bottom: 1rem;
+        }
+        
+        .faq-answer p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Wrapping Up / CTA */
+        .wrapping-up {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--sh-border);
+        }
+        
+        .cta-box {
+            background: var(--sh-bg-alt);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .cta-box h3 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--sh-accent);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background: var(--sh-accent-hover);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--sh-accent);
+            border: 2px solid var(--sh-accent);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--sh-accent);
+            color: #fff;
+        }
+        
+        /* Footer */
+        .site-footer {
+            margin-top: 4rem;
+            padding: 3rem 0 2rem;
+            border-top: 1px solid var(--sh-border);
+            background: var(--sh-bg-alt);
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-col h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .footer-col ul {
+            list-style: none;
+        }
+        
+        .footer-col li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-col a {
+            color: var(--sh-text);
+            text-decoration: none;
+        }
+        
+        .footer-col a:hover {
+            color: var(--sh-accent);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--sh-border);
+            color: #707077;
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .page-wrapper {
+                padding: 0 1.5rem;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .page-wrapper {
+                padding: 0 1rem;
+            }
+            
+            .entry-title {
+                font-size: 1.75rem;
+            }
+            
+            .article-content h2 {
+                font-size: 1.25rem;
+            }
+            
+            .article-content h3 {
+                font-size: 1.125rem;
+            }
+            
+            .cta-box {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Print */
+        @media print {
+            .site-header, .breadcrumb, .site-footer, .btn {
+                display: none;
+            }
+            
+            .page-wrapper {
+                max-width: none;
+                padding: 0;
+            }
+            
+            .article-content pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="site-header">
+            <div class="site-branding">
+                <a href="https://www.scrapehero.com/" aria-label="ScrapeHero Home">
+                    <svg class="site-logo" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect width="800" height="800" fill="#363636" rx="80"/>
+                        <text x="400" y="520" font-family="Figtree, sans-serif" font-size="320" font-weight="700" fill="white" text-anchor="middle">SH</text>
+                    </svg>
+                </a>
+            </div>
+        </header>
+        
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://www.scrapehero.com/">Home</a>
+            <span>/</span>
+            <span aria-current="page">Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]</span>
+        </nav>
+        
+        <!-- Article -->
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <div class="article-author">
+                        <img class="author-avatar" src="https://secure.gravatar.com/avatar/2a099ae60b3b748d7eadb529bccb8b50?s=96&d=retro&r=g" alt="" loading="lazy">
+                        <a class="author-name" href="https://www.linkedin.com/in/vjmadhudath/" target="_blank" rel="noopener">Madhu</a>
+                    </div>
+                    <time datetime="2026-11-24T05:38:00.277734+00:00">November 24, 2026</time>
+                </div>
+                <h1 class="entry-title">Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]</h1>
+            </header>
+            
+            <div class="article-content">
+                <p>Glassdoor salary estimates can change as listings are updated, but manually checking the same job searches makes it difficult to see what changed and when. A <strong>Glassdoor salary range tracker</strong> can capture each search on a schedule, split the estimate into numeric minimum and maximum values, and keep a dated salary history in Google Sheets.</p>
+<p>This tutorial shows how to build an n8n workflow that:</p>
+<ol><li>Reads Glassdoor search URLs, job categories, and states from Google Sheets.</li><li>Retrieves the job listings for each URL with ScrapeHero's Glassdoor Job Results API.</li><li>Splits the results into individual jobs and parses each <code>estimated_salary</code> range.</li><li>Appends every observation to a history sheet using the Glassdoor job listing ID.</li></ol>
+<h3>Key Takeaways</h3>
+<ul><li>The ScrapeHero node uses the <strong>Glassdoor Job Results API</strong> and the search URL supplied in the input sheet.</li><li>The API returns a <code>job_details</code> array; <strong>Split Out</strong> turns each job into an individual item.</li><li>The workflow parses <code>estimated_salary</code> into numeric <strong>Salary Min</strong> and <strong>Salary Max</strong> fields and keeps the original estimate.</li><li><code>job_listing_id</code> becomes <strong>Job ID</strong>, while each scheduled run adds a new row instead of overwriting previous salary observations.</li><li>Currency and pay period remain separate, so hourly and annual estimates are not compared as if they used the same period.</li><li>The provided workbook has statewide search rows for California, New York, and Nevada across marketing, graphic design, and software development.</li></ul>
+<h2>Before You Begin</h2>
+<p>Prepare the following:</p>
+<ol><li>An n8n instance with permission to install or use the ScrapeHero community node.</li><li>A ScrapeHero account with access and credits for the Glassdoor Job Results API.</li><li>A Google account connected to n8n through a Google Sheets OAuth2 credential.</li><li>The <a href="../../Glassdoor_Salary_Tracker_Google_Sheets_Ready.xlsx" target="_blank" rel="noopener">Glassdoor Salary Tracker upload template</a>, uploaded to Google Drive and opened as a Google Sheet. The Google account connected to n8n must be able to open it.</li><li>The workbook available in n8n's Google Sheets picker. You do not need to copy the spreadsheet ID.</li></ol>
+<p>The <strong>Search URLs</strong> tab contains <code>State</code>, <code>Job Category</code>, and <code>Search URL</code> columns. The workbook includes nine statewide searches: three job categories for each of the three selected states.</p>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>State</th><th>Job Category</th><th>Search URL</th></tr></thead>
+<tbody><tr><td>California</td><td>Marketing</td><td><code>https://www.glassdoor.com/Job/california-marketing-jobs-SRCH_IL.0,10_IS2280_KO11,20.htm</code></td></tr><tr class="alt"><td>California</td><td>Graphic Designer</td><td>Use the matching row in the uploaded workbook</td></tr><tr><td>California</td><td>Software Developer</td><td>Use the matching row in the uploaded workbook</td></tr></tbody>
+</table>
+</div>
+<p>Keep the <strong>Salary History</strong> tab's header row intact. It includes the fields the final Google Sheets node writes:</p>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>Observed At</th><th>Job ID</th><th>Job Title</th><th>Company</th><th>Location</th><th>State</th><th>Job Category</th><th>Estimated Salary</th><th>Salary Min</th><th>Salary Max</th><th>Currency</th><th>Pay Period</th><th>Estimated By</th><th>Job URL</th><th>Search URL</th></tr></thead>
+<tbody><tr><td>Generated on each run</td><td><code>1009556241633</code></td><td>Software Developer - AI Trainer</td><td>DataAnnotation</td><td>Boston, MA</td><td>Massachusetts</td><td>Software Developer</td><td><code>$40 - $40</code></td><td>40</td><td>40</td><td>USD</td><td>HOURLY</td><td>Employer Est</td><td><code>https://www.glassdoor.com/job-listing/software-developer-ai-trainer-dataannotation-JV_IC1154532_KO0,29_KE30,44.htm?jl=1009556241633</code></td><td><code>https://www.glassdoor.com/Job/boston-software-engineer-jobs-SRCH_IL.0,6_IC1154532_KO7,24.htm?srs=RECENT_SEARCHES</code></td></tr></tbody>
+</table>
+</div>
+<p>The sample row illustrates the API fields and parsed values. <strong>Observed At</strong> is generated by n8n at runtime; the remaining sample values come from the API response example.</p>
+<h2>Build the Workflow</h2>
+<h3>1. Add a Schedule Trigger</h3>
+<p>Start with the node that sets the snapshot cadence. Click the <strong>plus icon</strong> (+), search for <strong>Schedule Trigger</strong>, and add it.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding Schedule Trigger in an n8n workflow.png" alt="Searching and adding Schedule Trigger in an n8n workflow" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding Schedule Trigger in an n8n workflow</figcaption>
+</figure>
+<p>Set the trigger to run every day at <strong>06:00</strong> in the n8n instance's timezone.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring the Schedule Trigger to run daily.png" alt="Configuring the Schedule Trigger to run daily" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring the Schedule Trigger to run daily</figcaption>
+</figure>
+<h3>2. Read the Search URLs from Google Sheets</h3>
+<p>Click the Schedule Trigger's <strong>plus icon</strong> (+), search for <strong>Google Sheets</strong>, and choose <strong>Get row(s) in sheet</strong>.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding a Google Sheets node to read salary search URLs.png" alt="Searching and adding a Google Sheets node to read salary search URLs" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding a Google Sheets node to read salary search URLs</figcaption>
+</figure>
+<p>Connect the Google Sheets OAuth2 credential. Open the <strong>Document</strong> list and choose the uploaded workbook, then open the <strong>Sheet</strong> list and choose <strong>Search URLs</strong>. Both lists are populated from your Google Drive, so no spreadsheet ID is needed. The first row must contain the exact headers <code>State</code>, <code>Job Category</code>, and <code>Search URL</code>.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring the Google Sheets node to read Glassdoor search URLs.png" alt="Configuring the Google Sheets node to read Glassdoor search URLs" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring the Google Sheets node to read Glassdoor search URLs</figcaption>
+</figure>
+<p>The workflow reads every populated row. Each row supplies the job search URL and the state/category labels that will be copied into the history record.</p>
+<h3>3. Process One Search URL at a Time</h3>
+<p>Add <strong>Loop Over Items</strong> after the Google Sheets node.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding a Loop Over Items node in an n8n workflow.png" alt="Searching and adding a Loop Over Items node in an n8n workflow" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding a Loop Over Items node in an n8n workflow</figcaption>
+</figure>
+<p>Keep the default batch size of <code>1</code>. Connect the <strong>loop</strong> output to ScrapeHero; the <strong>done</strong> output remains unconnected because the workflow has no later step after all searches finish.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring Loop Over Items to process one search URL at a time.png" alt="Configuring Loop Over Items to process one search URL at a time" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring Loop Over Items to process one search URL at a time</figcaption>
+</figure>
+<h3>4. Fetch Glassdoor Job Listings with ScrapeHero</h3>
+<p>From the Loop Over Items <strong>loop</strong> output, add the <strong>ScrapeHero</strong> node.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding a ScrapeHero n8n node.png" alt="Searching and adding a ScrapeHero n8n node" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding a ScrapeHero n8n node</figcaption>
+</figure>
+<p>Create or select a ScrapeHero credential:</p>
+<ol><li>Go to <a href="https://app.scrapehero.com/" target="_blank" rel="noopener">app.scrapehero.com</a>.</li><li>Sign in to your account.</li><li>Click your profile icon.</li><li>Open the <strong>API Key</strong> page.</li><li>Copy your API key.</li><li>Return to n8n and select <strong>Create New Credential</strong> for the ScrapeHero node.</li><li>Paste the key into the credential field. Keep the key private; the field should remain masked in screenshots.</li><li>Save the credential.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/Pasting the ScrapeHero Cloud API key into a masked credential field.png" alt="Pasting the ScrapeHero Cloud API key into a masked credential field" loading="lazy" />
+<figcaption class="wp-element-caption">Pasting the ScrapeHero Cloud API key into a masked credential field</figcaption>
+</figure>
+<p>Configure the node to use <strong>Glassdoor Job Results API</strong>. In <strong>Job Search URL</strong>, switch to expression mode and enter:</p>
+
+<pre class="wp-block-code"><code class="language-javascript">={{ $json["Search URL"] }}</code></pre>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring the ScrapeHero n8n node to fetch Glassdoor job results.png" alt="Configuring the ScrapeHero n8n node to fetch Glassdoor job results" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring the ScrapeHero n8n node to fetch Glassdoor job results</figcaption>
+</figure>
+<p>The API returns a <code>job_details</code> array with fields such as <code>job_listing_id</code>, <code>job_title</code>, nested company and location details, <code>estimated_salary</code>, <code>estimated_by</code>, <code>pay_currency</code>, and <code>pay_period</code>. The workflow uses the URL in the sheet for each API call. It does not use a <code>next</code> URL. Click <strong>Execute Step</strong> to confirm the response before moving on.</p>
+<p>After testing the node with a single search row, pin the returned data while configuring the downstream nodes. This avoids repeating API calls during setup.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Pinning the ScrapeHero output using the pin icon.png" alt="Pinning the ScrapeHero output using the pin icon" loading="lazy" />
+<figcaption class="wp-element-caption">Pinning the ScrapeHero output using the pin icon</figcaption>
+</figure>
+<h2>Parse the Salary Range</h2>
+<h3>5. Split the <code>job_details</code> Array</h3>
+<p>Add <strong>Split Out</strong> after ScrapeHero.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding a Split Out node in an n8n workflow.png" alt="Searching and adding a Split Out node in an n8n workflow" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding a Split Out node in an n8n workflow</figcaption>
+</figure>
+<p>Set <strong>Fields To Split Out</strong> to:</p>
+
+<pre class="wp-block-code"><code class="language-text">job_details</code></pre>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring Split Out to split the job_details array.png" alt="Configuring Split Out to split the job_details array" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring Split Out to split the job_details array</figcaption>
+</figure>
+<p>Each output item now represents one job listing. The minimum and maximum values are not an array in the API response; they are parsed from the <code>estimated_salary</code> string in the next node.</p>
+<h3>6. Map Job Fields and Parse the Minimum and Maximum</h3>
+<p>Add <strong>Edit Fields</strong> after Split Out.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding an Edit Fields node in an n8n workflow.png" alt="Searching and adding an Edit Fields node in an n8n workflow" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding an Edit Fields node in an n8n workflow</figcaption>
+</figure>
+<p>Create the fields below. Set <strong>Salary Min</strong> and <strong>Salary Max</strong> to the <strong>Number</strong> type; keep the other values as strings.</p>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>Output field</th><th>Source or expression</th><th>Type</th></tr></thead>
+<tbody><tr><td>Observed At</td><td><code>={{ $now.toISO() }}</code></td><td>String</td></tr><tr class="alt"><td>Job ID</td><td><code>={{ String($json.job_listing_id ?? '') }}</code></td><td>String</td></tr><tr><td>Job Title</td><td><code>={{ $json.job_title ?? '' }}</code></td><td>String</td></tr><tr class="alt"><td>Company</td><td><code>={{ $json.company_details?.company_name ?? '' }}</code></td><td>String</td></tr><tr><td>Location</td><td><code>={{ $json.location_details?.location ?? '' }}</code></td><td>String</td></tr><tr class="alt"><td>State</td><td><code>={{ $('Loop Over Items').item.json.State }}</code></td><td>String</td></tr><tr><td>Job Category</td><td><code>={{ $('Loop Over Items').item.json["Job Category"] }}</code></td><td>String</td></tr><tr class="alt"><td>Estimated Salary</td><td><code>={{ $json.estimated_salary ?? '' }}</code></td><td>String</td></tr><tr><td>Salary Min</td><td>Use the expression below</td><td>Number</td></tr><tr class="alt"><td>Salary Max</td><td>Use the expression below</td><td>Number</td></tr><tr><td>Currency</td><td><code>={{ $json.pay_currency ?? '' }}</code></td><td>String</td></tr><tr class="alt"><td>Pay Period</td><td><code>={{ $json.pay_period ?? '' }}</code></td><td>String</td></tr><tr><td>Estimated By</td><td><code>={{ $json.estimated_by ?? '' }}</code></td><td>String</td></tr><tr class="alt"><td>Job URL</td><td><code>={{ $json.job_link ?? '' }}</code></td><td>String</td></tr><tr><td>Search URL</td><td><code>={{ $('Loop Over Items').item.json["Search URL"] }}</code></td><td>String</td></tr></tbody>
+</table>
+</div>
+<p>For <strong>Salary Min</strong>, use:</p>
+
+<pre class="wp-block-code"><code class="language-javascript">={{ $json.estimated_salary && ($json.estimated_salary.match(/[\d,.]+/g) || [])[0] ? Number($json.estimated_salary.match(/[\d,.]+/g)[0].replace(/,/g, '')) * (/\d[\d,.]*\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}</code></pre>
+<p>For <strong>Salary Max</strong>, use:</p>
+
+<pre class="wp-block-code"><code class="language-javascript">={{ $json.estimated_salary && ($json.estimated_salary.match(/[\d,.]+/g) || [])[0] ? Number((($json.estimated_salary.match(/[\d,.]+/g) || [])[1] || $json.estimated_salary.match(/[\d,.]+/g)[0]).replace(/,/g, '')) * (/\d[\d,.]*\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}</code></pre>
+<p>The expressions remove currency symbols and thousands separators, return numeric values, and account for a <code>K</code> suffix. A single numeric amount is used for both minimum and maximum. If <code>estimated_salary</code> is <code>null</code>, both values stay empty; the job row is still retained. Keep <strong>Pay Period</strong> as a separate field instead of converting hourly rates into annual estimates.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring Edit Fields to map job details and split salary minimum and maximum.png" alt="Configuring Edit Fields to map job details and split salary minimum and maximum" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring Edit Fields to map job details and split salary minimum and maximum</figcaption>
+</figure>
+<h2>Append Salary History to Google Sheets</h2>
+<h3>7. Add the Append Row Node</h3>
+<p>Add a <strong>Google Sheets</strong> node after Edit Fields and choose <strong>Append row in sheet</strong>.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Searching and adding a Google Sheets node to append salary history.png" alt="Searching and adding a Google Sheets node to append salary history" loading="lazy" />
+<figcaption class="wp-element-caption">Searching and adding a Google Sheets node to append salary history</figcaption>
+</figure>
+<p>Choose the same workbook from the <strong>Document</strong> list, choose the <strong>Salary History</strong> tab from the <strong>Sheet</strong> list, and set the mapping mode to <strong>Map Automatically</strong>. The field names from Edit Fields must match the header row exactly.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/Configuring the Google Sheets node to append Glassdoor salary history.png" alt="Configuring the Google Sheets node to append Glassdoor salary history" loading="lazy" />
+<figcaption class="wp-element-caption">Configuring the Google Sheets node to append Glassdoor salary history</figcaption>
+</figure>
+<p>Use <strong>Append Row</strong>, not an upsert or update operation. Each run creates a new observation for a job ID, preserving the salary history instead of replacing the previous estimate.</p>
+<h3>8. Complete the Loop</h3>
+<p>Connect <strong>Append row in sheet</strong> back to the <strong>Loop Over Items</strong> input. This starts processing the next search URL. The ScrapeHero node is configured to continue on an error; connect its error output back to the same loop input so one failed query does not stop the remaining searches.</p>
+
+<figure class="wp-block-image size-full">
+<img src="images/The complete n8n workflow to track Glassdoor salary ranges with ScrapeHero.png" alt="The complete n8n workflow to track Glassdoor salary ranges with ScrapeHero" loading="lazy" />
+<figcaption class="wp-element-caption">The complete n8n workflow to track Glassdoor salary ranges with ScrapeHero</figcaption>
+</figure>
+<h2>Test the Workflow</h2>
+<p>Before running all nine searches, make a copy of the spreadsheet for testing and leave one search row in its <strong>Search URLs</strong> tab.</p>
+<ol><li>Select the Google Sheets and ScrapeHero credentials in both Google Sheets nodes and the ScrapeHero node.</li><li>Confirm that both Google Sheets nodes use the workbook you chose from the <strong>Document</strong> list and the correct tab from the <strong>Sheet</strong> list.</li><li>Execute the workflow manually. Confirm that ScrapeHero returns <code>job_details</code> and Split Out emits one item per listing.</li><li>Inspect <strong>Salary Min</strong>, <strong>Salary Max</strong>, <strong>Currency</strong>, and <strong>Pay Period</strong> in Edit Fields. Check a ranged salary, a single-value salary, and a job whose estimate is null.</li><li>Confirm that the Append node adds rows under the existing headers in <strong>Salary History</strong>.</li><li>Run the same search again. The workflow should append another observation instead of replacing existing rows.</li></ol>
+<p>The example API response includes <code>"$40 - $40"</code> for an hourly job, <code>"$94224 - $135217"</code> for an annual job, and a listing with no salary estimate. These cases demonstrate why the raw estimate, numeric range, currency, and pay period are stored separately.</p>
+<p>The workflow processes the results returned for each supplied search URL. It does not follow a pagination <code>next</code> URL.</p>
+<h2>What This Unlocks for Your Business</h2>
+<ul><li><strong>Track estimate changes:</strong> Compare dated salary observations for the same <code>Job ID</code>.</li><li><strong>Benchmark locations:</strong> Compare Glassdoor salary estimates across California, New York, and Nevada.</li><li><strong>Compare job families:</strong> Review marketing, graphic designer, and software developer compensation in a single sheet.</li><li><strong>Keep pay units clear:</strong> Filter hourly and annual estimates without mixing the periods.</li><li><strong>Build a reusable dataset:</strong> Extend the search list and connect the results to reporting tools. Explore the <a href="https://www.scrapehero.com/marketplace/glassdoor-job-api/" target="_blank" rel="noopener">Glassdoor Job API on ScrapeHero Marketplace</a>.</li></ul>
+<h2>Next Steps</h2>
+<ul><li><strong>Add states:</strong> Add more state/category/search URL rows to <strong>Search URLs</strong>.</li><li><strong>Change the cadence:</strong> Adjust the Schedule Trigger to capture estimates more or less often.</li><li><strong>Build a dashboard:</strong> Connect the history tab to a reporting tool and chart min/max changes by job ID.</li><li><strong>Add alerts:</strong> Notify a channel when a tracked estimate changes beyond a chosen threshold.</li></ul>
+<h2>Wrapping Up</h2>
+<p>This workflow turns recurring Glassdoor job searches into a structured salary history. The job listing ID ties observations together, while the timestamp and pay details make changes easier to review.</p>
+<p>Start with the <a href="https://www.scrapehero.com/marketplace/glassdoor-job-api/" target="_blank" rel="noopener">ScrapeHero Glassdoor Job API</a> and an API key, then use the uploaded workbook as the search and history template. Test one search URL before enabling the full schedule.</p>
+<p>For custom coverage, we can build managed data collection around your job categories, locations, delivery schedule, and downstream systems. Learn more about <a href="https://www.scrapehero.com/services/" target="_blank" rel="noopener">ScrapeHero's data services</a>.</p>
+<h2>Frequently Asked Questions</h2>
+<div class="faq-item"><div class="faq-question">What is the Glassdoor job ID used for in the salary tracker?</div>
+<div class="faq-answer"><p>The API returns <code>job_listing_id</code>. The workflow stores it as <strong>Job ID</strong>, which lets the sheet associate later observations with the same Glassdoor listing.</p></div></div>
+<div class="faq-item"><div class="faq-question">Does the workflow overwrite the previous salary estimate?</div>
+<div class="faq-answer"><p>No. The Google Sheets node uses <strong>Append Row</strong>, so each scheduled run adds an observation and keeps earlier rows.</p></div></div>
+<div class="faq-item"><div class="faq-question">What happens when Glassdoor has no salary estimate?</div>
+<div class="faq-answer"><p>The job is still appended. <strong>Estimated Salary</strong>, <strong>Salary Min</strong>, and <strong>Salary Max</strong> are blank, while the job ID and other returned fields are retained.</p></div></div>
+<div class="faq-item"><div class="faq-question">Does the workflow follow the API's <code>next</code> URL?</div>
+<div class="faq-answer"><p>No. It uses the Glassdoor search URL supplied to the ScrapeHero node and records the jobs returned for that request. It does not use an HTTP Request node or follow a <code>next</code> URL.</p></div></div>
+            </div>
+        </article>
+        
+        <!-- Footer -->
+        <footer class="site-footer" role="contentinfo">
+            <div class="page-wrapper">
+                <div class="footer-content">
+                    <div class="footer-col">
+                        <h4>ScrapeHero</h4>
+                        <ul>
+                            <li><a href="https://www.scrapehero.com/">Home</a></li>
+                            <li><a href="https://www.scrapehero.com/services/">Managed Web Scraping</a></li>
+                            <li><a href="https://www.scrapehero.com/marketplace/">ScrapeHero Marketplace</a></li>
+                            <li><a href="https://www.scrapehero.com/cloud/">ScrapeHero Cloud</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="https://www.scrapehero.com/articles/">All Articles</a></li>
+                            <li><a href="https://www.scrapehero.com/n8n/">n8n Integration</a></li>
+                            <li><a href="https://www.scrapehero.com/api-documentation/">API Documentation</a></li>
+                            <li><a href="https://www.scrapehero.com/pricing/">Pricing</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="https://www.scrapehero.com/about/">About Us</a></li>
+                            <li><a href="https://www.scrapehero.com/contact/">Contact</a></li>
+                            <li><a href="https://www.scrapehero.com/careers/">Careers</a></li>
+                            <li><a href="https://www.scrapehero.com/privacy-policy/">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Connect</h4>
+                        <ul>
+                            <li><a href="https://x.com/scrapehero" target="_blank" rel="noopener">X (Twitter)</a></li>
+                            <li><a href="https://www.linkedin.com/company/scrape-hero" target="_blank" rel="noopener">LinkedIn</a></li>
+                            <li><a href="https://github.com/scrapehero" target="_blank" rel="noopener">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 ScrapeHero. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- FAQ Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.faq-question').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    this.parentElement.classList.toggle('open');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -575,6 +575,30 @@ def cmd_screenshots(args):
             print(f"✅ Auto-synced {res['synced_count']} screenshots.")
             screenshot_manager.list_screenshots(article_path)
 
+
+def cmd_build_html(args):
+    """Build standalone HTML from article markdown."""
+    from utils.markdown_to_scrapehero_html import build_html
+    from pathlib import Path
+    
+    article_target = args.article
+    if not os.path.exists(article_target):
+        cand = os.path.join(ARTICLES_DIR, article_target)
+        if os.path.exists(cand):
+            article_target = cand
+        else:
+            print(f"Error: Article '{args.article}' not found at {article_target} or {cand}")
+            sys.exit(1)
+    
+    article_dir = Path(article_target)
+    if article_dir.is_file():
+        article_dir = article_dir.parent
+    
+    output_path = Path(args.output).resolve() if args.output else article_dir / 'index.html'
+    
+    build_html(article_dir, output_path)
+
+
 def main():
     parser = argparse.ArgumentParser(description="ScrapeHero Article Generator - Manage articles and generate workflows.")
     subparsers = parser.add_subparsers(dest="command", required=True, help="Command to run")
@@ -605,6 +629,11 @@ def main():
     val_parser = subparsers.add_parser("validate", help="Validate workflow.json against critic rules")
     val_parser.add_argument("workflow_file", help="Path to the workflow.json file")
 
+    # build-html command
+    html_parser = subparsers.add_parser("build-html", help="Build standalone HTML from article markdown with ScrapeHero styling")
+    html_parser.add_argument("article", help="Article slug or directory (e.g., 'glassdoor-salary-range-tracker' or 'articles/...')")
+    html_parser.add_argument("-o", "--output", help="Output HTML file path (default: article_dir/index.html)")
+    
     # screenshots command
     ss_parser = subparsers.add_parser("screenshots", help="Manage article screenshots (list, sync, capture, browser)")
     ss_parser.add_argument("article", help="Article slug or directory (e.g., 'amazon-product-discount-tracker' or 'articles/...')")
@@ -632,6 +661,8 @@ def main():
         cmd_validate(args)
     elif args.command == "screenshots":
         cmd_screenshots(args)
+    elif args.command == "build-html":
+        cmd_build_html(args)
     else:
         parser.print_help()
 
