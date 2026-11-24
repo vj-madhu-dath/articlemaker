@@ -257,3 +257,26 @@ For articles that need a live node-selector screenshot after each node addition:
 - n8n canvas panning needs a middle-button drag or Space+left drag; plain left drag does not pan. Start on empty canvas and move the relevant parent node into view before opening its plus handle.
 - For authenticated internal REST calls, use the browser context request with the `browser-id` header and saved browser auth state; page `fetch` may omit the Secure auth cookie. On n8n 2.x, archive a staging workflow before deleting it.
 - After capture, verify every article placeholder with `generate.py screenshots <article> --list`, confirm screenshots are live 1920×1080 dark-mode captures, and check that no staging workflows remain.
+
+## ScrapeHero-Style HTML Build Rule
+
+Every n8n tutorial article must produce a standalone `index.html` that matches the ScrapeHero blog layout.
+
+**Build & verify steps (run after article.md and screenshots are final):**
+
+```bash
+python3 generate.py build-html <article-slug>
+# Then open articles/<article-slug>/index.html in a browser and confirm:
+```
+
+1. **Article title** = the H1 from article.md (not the SEO title).
+2. **All images load** — relative `images/...` paths resolve correctly.
+3. **Code blocks render** — fenced JavaScript/text blocks use monospace font.
+4. **Tables render** — striped rows, header row dark, inline code intact.
+5. **FAQ accordions work** — click toggles answer visibility.
+6. **No invented metadata** — no canonical URL, no publication date, no fake author avatar unless the article provides them.
+7. **ScrapeHero branding** — Figtree font, `#363636` primary, `#209CEE` accent, real ScrapeHero logo (SVG/PNG from assets), footer links to scrapehero.com.
+8. **SEO meta present but honest** — Open Graph / Twitter / JSON-LD use the article's SEO block; omit or mark placeholders for fields not yet set (canonical URL, published date).
+9. **Responsive layout** — max-width 1140px, readable on mobile.
+
+**Gate:** Do not mark the article "complete" until the HTML passes all checks.
