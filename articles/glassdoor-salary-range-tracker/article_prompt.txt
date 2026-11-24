@@ -1,0 +1,529 @@
+You are an expert technical content writer for the ScrapeHero blog.
+Write a highly structured, instructional SEO article in a **tutorial style** based on the provided configuration and reference workflow.
+
+### Tone & Style Guide
+- **Practical Mentor:** Conversational, hands-on senior engineer walkthrough.
+- **Pronoun Rules:**
+  - Never use "we" in the tutorial, explanation, or overview sections. Use phrasing like "this guide shows", "this workflow uses", or imperative steps.
+  - Never use "you will learn".
+  - DO use "we" ONLY in the final CTA paragraph when referencing ScrapeHero's enterprise data services.
+- **Tone & Language to Avoid:**
+  - Avoid fluff, buzzwords, and academic lecturing.
+  - Do NOT use: "not only... but also...", em dashes (—), "it's important to note", "delve", "robust", "seamless", "leverage", "unlock", "in today's...", "whether you're...", "in conclusion", "ultimately", "at the end of the day".
+- **Instructional Steps:** Use imperative instructions with specific n8n UI actions (e.g., "Click the **plus icon** (+)", "Search for **[Node Name]**", "Under Action, select...", "Set parameter X to..."). Do not instruct the reader to rename nodes.
+- **Code & Expressions:** Wrap all n8n expressions in ```javascript ``` code blocks.
+- **Screenshot Placeholders:** Use markdown image placeholders with descriptive alt text (`![Descriptive alt text](add-image-url)`).
+  - For **every node the reader adds**, include a dedicated selector screenshot immediately after the add instruction, with alt text starting `Searching and adding ...`. Every node addition needs its own selector screenshot; never reuse one search screenshot for multiple nodes.
+  - Then include a `Configuring the ... node` screenshot after the node parameters are set. Do not use bare `add-image-url` placeholders.
+- **Tables:** Use markdown tables for prerequisites, field mappings, and input data formats.
+- **Reference Accuracy:** Reference the exact node names, types, and versions from the reference workflow JSON.
+
+### Mandatory Article Structure
+1.  **SEO Metadata (Above H1):**
+    - Place SEO metadata block strictly above the H1 title in this exact format:
+      [SEO Meta]
+      Focus Keyword: [Primary Keyword]
+      SEO Title: [Title with brackets or primary keyword]
+      SEO Description: [Active voice description under 160 characters]
+      [/SEO Meta]
+    - Do NOT include a Table of Contents (no `#### Table of contents`).
+2.  **H1 Title:**
+    `# How to [Action/Goal] With n8n and ScrapeHero`
+3.  **Introduction:** Exactly two paragraphs.
+    - Paragraph 1: Business problem + primary SEO keyword + automated solution overview.
+    - Paragraph 2: Lead-in ("This tutorial shows how to build an n8n workflow that:") followed by a 4-point numbered list summarizing the pipeline.
+4.  **Key Takeaways:**
+    - Heading: `### Key Takeaways` immediately following the intro numbered list.
+    - 5-6 practical takeaway bullet points.
+5.  **Before You Begin:**
+    - Prerequisites list/table (n8n instance, credentials, input data source, ScrapeHero API key).
+    - Sample markdown tables showing the required Google Sheet or database structure (headers and sample row). If using separate tabs (e.g. input queries vs output results), provide distinct tables for both tabs.
+6.  **Workflow Construction (Dynamic Multi-Phase Grouping):**
+    Organize the steps based on the workflow's architecture:
+    - **For Linear Pipelines (Extract -> Transform -> Load)**: Organize into 4 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Reading input data, Loop node, ScrapeHero node with Pin Data tip).
+        * For ScrapeHero node: Specify dedicated `n8n-nodes-scrapehero.scrapeHero` community node. Provide the standard 8-step credential setup:
+          1. Go to app.scrapehero.com -> 2. Sign in -> 3. Profile icon -> 4. Open API Key -> 5. Copy key -> 6. Return to n8n -> 7. Paste key -> 8. Save credentials.
+      - **Phase 2: `## [Transformation Phase]`** (Split Out, Edit Fields with markdown mapping table, Filter, Sort, in-step type parsing).
+      - **Phase 3: `## [Destination Phase]`** (Append/Update, target mapping, matching keys, Execute Once).
+      - **Phase 4: `## Test and Complete the Loop`** (Loopback wiring, test checklist).
+    - **For Two-Way Sync / Diff Workflows (Extract -> Format -> Read Existing -> Merge -> Upsert -> Delete)**: Organize into 3 logical H2 sections:
+      - **Phase 1: `## Create the Workflow`** (Trigger, Input Source, Loop, ScrapeHero node with 8-step credential walkthrough and Pin Data tip, Split Out, Edit Fields with markdown mapping table).
+      - **Phase 2: `## [Compare & Sync Phase]`** (e.g., `## Compare and Update the Rankings` - Read Existing, Merge non-matches, compound-key upsert, bottom-up sort and delete).
+      - **Phase 3: `## Test and Complete the Loop`** (Loopback connection, zero-match loop guardrail using Always Output Data + Filter, test checklist).
+
+    *Nodes in this workflow to incorporate into these phases in execution order:*
+1. **Schedule Trigger** (`n8n-nodes-base.scheduleTrigger`)
+   Parameters: {"rule": {"interval": [{"field": "days", "daysInterval": 1, "triggerAtHour": 6, "triggerAtMinute": 0}]}}
+2. **Get row(s) in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"documentId": {"__rl": true, "value": "YOUR_GOOGLE_SHEET_ID", "mode": "id"}, "sheetName": {"__rl": true, "value": "Search URLs", "mode": "name"}, "options": {}}
+3. **Loop Over Items** (`n8n-nodes-base.splitInBatches`)
+   Parameters: {"options": {}}
+4. **ScrapeHero** (`n8n-nodes-scrapehero.scrapeHero`)
+   Parameters: {"api": "glassdoorJobResults", "glassdoorUrl": "={{ $json[\"Search URL\"] }}"}
+5. **Split Out** (`n8n-nodes-base.splitOut`)
+   Parameters: {"fieldToSplitOut": "job_details", "options": {}}
+6. **Edit Fields** (`n8n-nodes-base.set`)
+   Parameters: {"assignments": {"assignments": [{"id": "3a6349a0-34f7-4a81-a2ad-000000000101", "name": "Observed At", "value": "={{ $now.toISO() }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000102", "name": "Job ID", "value": "={{ String($json.job_listing_id ?? '') }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000103", "name": "Job Title", "value": "={{ $json.job_title ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000104", "name": "Company", "value": "={{ $json.company_details?.company_name ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000105", "name": "Location", "value": "={{ $json.location_details?.location ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000106", "name": "State", "value": "={{ $('Loop Over Items').item.json.State }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000107", "name": "Job Category", "value": "={{ $('Loop Over Items').item.json[\"Job Category\"] }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000108", "name": "Estimated Salary", "value": "={{ $json.estimated_salary ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000109", "name": "Salary Min", "value": "={{ $json.estimated_salary && ($json.estimated_salary.match(/[\\d,.]+/g) || [])[0] ? Number($json.estimated_salary.match(/[\\d,.]+/g)[0].replace(/,/g, '')) * (/\\d[\\d,.]*\\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}", "type": "number"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000110", "name": "Salary Max", "value": "={{ $json.estimated_salary && ($json.estimated_salary.match(/[\\d,.]+/g) || [])[0] ? Number((($json.estimated_salary.match(/[\\d,.]+/g) || [])[1] || $json.estimated_salary.match(/[\\d,.]+/g)[0]).replace(/,/g, '')) * (/\\d[\\d,.]*\\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}", "type": "number"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000111", "name": "Currency", "value": "={{ $json.pay_currency ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000112", "name": "Pay Period", "value": "={{ $json.pay_period ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000113", "name": "Estimated By", "value": "={{ $json.estimated_by ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000114", "name": "Job URL", "value": "={{ $json.job_link ?? '' }}", "type": "string"}, {"id": "3a6349a0-34f7-4a81-a2ad-000000000115", "name": "Search URL", "value": "={{ $('Loop Over Items').item.json[\"Search URL\"] }}", "type": "string"}]}, "options": {}}
+7. **Append row in sheet** (`n8n-nodes-base.googleSheets`)
+   Parameters: {"operation": "append", "documentId": {"__rl": true, "value": "YOUR_GOOGLE_SHEET_ID", "mode": "id"}, "sheetName": {"__rl": true, "value": "Salary History", "mode": "name"}, "columns": {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": [], "attemptToConvertTypes": true, "convertFieldsToString": false}, "options": {}}
+7.  **Business Benefits:**
+    - Heading: `## What This Unlocks for Your Business`
+    - Exactly 5 concrete business use cases formatted as bullet points with bold lead-ins, closing with a link to ScrapeHero Cloud / Marketplace.
+8.  **Next Steps:**
+    - Heading: `## Next Steps` (3-4 actionable extension ideas with direct action titles).
+9.  **Wrapping Up:** Exactly three to four paragraphs:
+    - Paragraph 1: Value of the automated DIY workflow.
+    - Paragraph 2: CTA to get ScrapeHero API key + offer to build custom APIs.
+    - Paragraph 3: Managed enterprise scraping service pitch using "we" (link to scrapehero.com).
+10. **Frequently Asked Questions:** (Absolute last section).
+    - Heading: `## Frequently Asked Questions`
+    - 3-6 practical questions using `###` headers, addressing the reader with "you" (answering PAA and technical queries without filler).
+
+### SEO Requirements
+Please ensure the following SEO keywords, phrases, or guidelines are organically sprinkled throughout the headings and body text:
+
+# Primary Keyword
+
+Glassdoor salary range tracker
+
+# Secondary Keywords
+
+- Glassdoor salary tracker
+- Glassdoor job salary history
+- Glassdoor estimated salary API
+- n8n Glassdoor API workflow
+- track Glassdoor salary ranges in Google Sheets
+
+# People Also Ask
+
+- How do I track Glassdoor salary ranges over time?
+- How do I extract minimum and maximum salary values in n8n?
+- Can I save Glassdoor job salary data to Google Sheets?
+- What is the Glassdoor job listing ID?
+- How do I keep hourly and annual salary estimates separate?
+
+# Suggested SEO Title
+
+Glassdoor Salary Range Tracker [Log Job Estimates with n8n]
+
+# Internal Links
+
+- https://www.scrapehero.com/marketplace/glassdoor-job-api/
+- https://www.scrapehero.com/marketplace/n8n/
+
+### Reference n8n Workflow JSON
+(Extract node names, types, parameters, connections from here)
+```json
+{
+  "name": "Glassdoor Salary Range Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000001",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Search URLs",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000002",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000003",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "api": "glassdoorJobResults",
+        "glassdoorUrl": "={{ $json[\"Search URL\"] }}"
+      },
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        672,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000004",
+      "name": "ScrapeHero",
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "job_details",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        896,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000005",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000101",
+              "name": "Observed At",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000102",
+              "name": "Job ID",
+              "value": "={{ String($json.job_listing_id ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000103",
+              "name": "Job Title",
+              "value": "={{ $json.job_title ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000104",
+              "name": "Company",
+              "value": "={{ $json.company_details?.company_name ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000105",
+              "name": "Location",
+              "value": "={{ $json.location_details?.location ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000106",
+              "name": "State",
+              "value": "={{ $('Loop Over Items').item.json.State }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000107",
+              "name": "Job Category",
+              "value": "={{ $('Loop Over Items').item.json[\"Job Category\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000108",
+              "name": "Estimated Salary",
+              "value": "={{ $json.estimated_salary ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000109",
+              "name": "Salary Min",
+              "value": "={{ $json.estimated_salary && ($json.estimated_salary.match(/[\\d,.]+/g) || [])[0] ? Number($json.estimated_salary.match(/[\\d,.]+/g)[0].replace(/,/g, '')) * (/\\d[\\d,.]*\\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}",
+              "type": "number"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000110",
+              "name": "Salary Max",
+              "value": "={{ $json.estimated_salary && ($json.estimated_salary.match(/[\\d,.]+/g) || [])[0] ? Number((($json.estimated_salary.match(/[\\d,.]+/g) || [])[1] || $json.estimated_salary.match(/[\\d,.]+/g)[0]).replace(/,/g, '')) * (/\\d[\\d,.]*\\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}",
+              "type": "number"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000111",
+              "name": "Currency",
+              "value": "={{ $json.pay_currency ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000112",
+              "name": "Pay Period",
+              "value": "={{ $json.pay_period ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000113",
+              "name": "Estimated By",
+              "value": "={{ $json.estimated_by ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000114",
+              "name": "Job URL",
+              "value": "={{ $json.job_link ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000115",
+              "name": "Search URL",
+              "value": "={{ $('Loop Over Items').item.json[\"Search URL\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000006",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Salary History",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000007",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "versionId": "3a6349a0-34f7-4a81-a2ad-000000000008"
+}
+```
+
+### Reference ScrapeHero API Output
+(Use this to accurately describe the fields extracted)
+```json
+{
+  "query": {
+    "input": "https://www.glassdoor.com/Job/boston-software-engineer-jobs-SRCH_IL.0,6_IC1154532_KO7,24.htm?srs=RECENT_SEARCHES"
+  },
+  "job_details": [
+    {
+      "rank": 1,
+      "job_title": "Software Developer - AI Trainer",
+      "job_listing_id": 1009556241633,
+      "company_details": {
+        "company_name": "DataAnnotation",
+        "company_id": 8605843
+      },
+      "location_details": {
+        "location": "Boston, MA"
+      },
+      "estimated_salary": "$40 - $40",
+      "estimated_by": "Employer Est",
+      "pay_currency": "USD",
+      "pay_period": "HOURLY",
+      "job_link": "https://www.glassdoor.com/job-listing/software-developer-ai-trainer-dataannotation-JV_IC1154532_KO0,29_KE30,44.htm?jl=1009556241633"
+    },
+    {
+      "rank": 2,
+      "job_title": "Full Stack Software Engineer (Ruby on Rails)",
+      "job_listing_id": 1009729620565,
+      "company_details": {
+        "company_name": "Vestmark Inc.",
+        "company_id": 263618
+      },
+      "location_details": {
+        "location": "Wakefield, MA"
+      },
+      "estimated_salary": "$94224 - $135217",
+      "estimated_by": "Glassdoor Est",
+      "pay_currency": "USD",
+      "pay_period": "ANNUAL",
+      "job_link": "https://www.glassdoor.com/job-listing/full-stack-software-engineer-ruby-on-rails-vestmark-inc-JV_IC1154701_KO0,42_KE43,55.htm?jl=1009729620565"
+    },
+    {
+      "rank": 3,
+      "job_title": "Chief Engineer - Software",
+      "job_listing_id": 1009050796916,
+      "company_details": {
+        "company_name": "Mission Oriented Rapid Solution Engineering Corp Inc",
+        "company_id": 1958990
+      },
+      "location_details": {
+        "location": "Cambridge, MA"
+      },
+      "estimated_salary": null,
+      "estimated_by": null,
+      "pay_currency": "USD",
+      "pay_period": null,
+      "job_link": "https://www.glassdoor.com/job-listing/chief-engineer-software-morse-corp-JV_IC1154545_KO0,23_KE24,34.htm?jl=1009050796916"
+    }
+  ]
+}
+```
+
+Generate the Markdown article below:

@@ -1,0 +1,346 @@
+{
+  "name": "Glassdoor Salary Range Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000001",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000002",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000003",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "api": "glassdoorJobResults",
+        "glassdoorUrl": "={{ $json[\"Search URL\"] }}"
+      },
+      "type": "n8n-nodes-scrapehero.scrapeHero",
+      "typeVersion": 1,
+      "position": [
+        672,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000004",
+      "name": "ScrapeHero",
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "scrapeHeroApi": {
+          "id": "",
+          "name": "ScrapeHero account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "job_details",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        896,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000005",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000101",
+              "name": "Observed At",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000102",
+              "name": "Job ID",
+              "value": "={{ String($json.job_listing_id ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000103",
+              "name": "Job Title",
+              "value": "={{ $json.job_title ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000104",
+              "name": "Company",
+              "value": "={{ $json.company_details?.company_name ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000105",
+              "name": "Location",
+              "value": "={{ $json.location_details?.location ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000106",
+              "name": "State",
+              "value": "={{ $('Loop Over Items').item.json.State }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000107",
+              "name": "Job Category",
+              "value": "={{ $('Loop Over Items').item.json[\"Job Category\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000108",
+              "name": "Estimated Salary",
+              "value": "={{ $json.estimated_salary ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000109",
+              "name": "Salary Min",
+              "value": "={{ $json.estimated_salary && ($json.estimated_salary.match(/[\\d,.]+/g) || [])[0] ? Number($json.estimated_salary.match(/[\\d,.]+/g)[0].replace(/,/g, '')) * (/\\d[\\d,.]*\\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}",
+              "type": "number"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000110",
+              "name": "Salary Max",
+              "value": "={{ $json.estimated_salary && ($json.estimated_salary.match(/[\\d,.]+/g) || [])[0] ? Number((($json.estimated_salary.match(/[\\d,.]+/g) || [])[1] || $json.estimated_salary.match(/[\\d,.]+/g)[0]).replace(/,/g, '')) * (/\\d[\\d,.]*\\s*[Kk]/.test($json.estimated_salary) ? 1000 : 1) : null }}",
+              "type": "number"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000111",
+              "name": "Currency",
+              "value": "={{ $json.pay_currency ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000112",
+              "name": "Pay Period",
+              "value": "={{ $json.pay_period ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000113",
+              "name": "Estimated By",
+              "value": "={{ $json.estimated_by ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000114",
+              "name": "Job URL",
+              "value": "={{ $json.job_link ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "3a6349a0-34f7-4a81-a2ad-000000000115",
+              "name": "Search URL",
+              "value": "={{ $('Loop Over Items').item.json[\"Search URL\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000006",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        240
+      ],
+      "id": "3a6349a0-34f7-4a81-a2ad-000000000007",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "ScrapeHero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "versionId": "3a6349a0-34f7-4a81-a2ad-000000000008"
+}

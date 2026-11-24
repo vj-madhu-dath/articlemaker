@@ -1,0 +1,58 @@
+{
+  "query": {
+    "input": "https://www.glassdoor.com/Job/boston-software-engineer-jobs-SRCH_IL.0,6_IC1154532_KO7,24.htm?srs=RECENT_SEARCHES"
+  },
+  "job_details": [
+    {
+      "rank": 1,
+      "job_title": "Software Developer - AI Trainer",
+      "job_listing_id": 1009556241633,
+      "company_details": {
+        "company_name": "DataAnnotation",
+        "company_id": 8605843
+      },
+      "location_details": {
+        "location": "Boston, MA"
+      },
+      "estimated_salary": "$40 - $40",
+      "estimated_by": "Employer Est",
+      "pay_currency": "USD",
+      "pay_period": "HOURLY",
+      "job_link": "https://www.glassdoor.com/job-listing/software-developer-ai-trainer-dataannotation-JV_IC1154532_KO0,29_KE30,44.htm?jl=1009556241633"
+    },
+    {
+      "rank": 2,
+      "job_title": "Full Stack Software Engineer (Ruby on Rails)",
+      "job_listing_id": 1009729620565,
+      "company_details": {
+        "company_name": "Vestmark Inc.",
+        "company_id": 263618
+      },
+      "location_details": {
+        "location": "Wakefield, MA"
+      },
+      "estimated_salary": "$94224 - $135217",
+      "estimated_by": "Glassdoor Est",
+      "pay_currency": "USD",
+      "pay_period": "ANNUAL",
+      "job_link": "https://www.glassdoor.com/job-listing/full-stack-software-engineer-ruby-on-rails-vestmark-inc-JV_IC1154701_KO0,42_KE43,55.htm?jl=1009729620565"
+    },
+    {
+      "rank": 3,
+      "job_title": "Chief Engineer - Software",
+      "job_listing_id": 1009050796916,
+      "company_details": {
+        "company_name": "Mission Oriented Rapid Solution Engineering Corp Inc",
+        "company_id": 1958990
+      },
+      "location_details": {
+        "location": "Cambridge, MA"
+      },
+      "estimated_salary": null,
+      "estimated_by": null,
+      "pay_currency": "USD",
+      "pay_period": null,
+      "job_link": "https://www.glassdoor.com/job-listing/chief-engineer-software-morse-corp-JV_IC1154545_KO0,23_KE24,34.htm?jl=1009050796916"
+    }
+  ]
+}

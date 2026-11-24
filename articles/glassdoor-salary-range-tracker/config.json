@@ -1,0 +1,23 @@
+{
+  "platform": "Glassdoor",
+  "automation_tool": "n8n",
+  "storage": "Google Sheets",
+  "workflow_description": "Reads state and job-category search URLs from Google Sheets, fetches Glassdoor job listings with the ScrapeHero community node, splits the job_details array, parses estimated_salary into numeric minimum and maximum values, and appends one historical observation per job listing.",
+  "scrapehero": {
+    "api_selection": "Glassdoor Job Results API",
+    "unique_identifier": "job_listing_id",
+    "node_parameters": {
+      "api": "glassdoorJobResults",
+      "glassdoorUrl": "={{ $json['Search URL'] }}"
+    },
+    "api_json_output_file": "api_sample.json"
+  },
+  "business_benefits": [
+    "Build a dated record of Glassdoor salary estimates by job listing.",
+    "Compare compensation ranges across job categories and states.",
+    "Preserve hourly and annual pay periods instead of mixing unlike amounts.",
+    "Keep job ID and observation time together to review changes over time.",
+    "Reduce repetitive job-board checks with scheduled API queries."
+  ],
+  "seo_suggestions_file": "seo_suggestions.md"
+}

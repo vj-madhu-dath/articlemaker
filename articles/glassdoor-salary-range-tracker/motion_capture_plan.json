@@ -1,0 +1,52 @@
+{
+  "capture_contract": {
+    "source": "Live n8n interface only",
+    "viewport": "1920x1080",
+    "color_scheme": "dark",
+    "format": "PNG",
+    "no_markup_on_source_frames": true,
+    "consistent_canvas_zoom_and_pan": true
+  },
+  "frames": [
+    {
+      "order": 1,
+      "file": "images/motion-source/01-trigger-and-input.png",
+      "moment": "Schedule Trigger, Google Sheets input, and Loop Over Items are configured"
+    },
+    {
+      "order": 2,
+      "file": "images/motion-source/02-scrapehero-configured.png",
+      "moment": "ScrapeHero node selected for Glassdoor Job Results API with the search URL expression"
+    },
+    {
+      "order": 3,
+      "file": "images/motion-source/03-split-job-details.png",
+      "moment": "Split Out configured to split job_details"
+    },
+    {
+      "order": 4,
+      "file": "images/motion-source/04-parse-salary-range.png",
+      "moment": "Edit Fields showing the raw estimate and separate numeric Salary Min and Salary Max expressions"
+    },
+    {
+      "order": 5,
+      "file": "images/motion-source/05-append-history.png",
+      "moment": "Google Sheets append mapping to the Salary History tab"
+    },
+    {
+      "order": 6,
+      "file": "images/motion-source/06-complete-workflow.png",
+      "moment": "Final complete workflow on a clean canvas with no markup"
+    },
+    {
+      "order": 7,
+      "file": "images/motion-source/07-live-scrape-output.png",
+      "moment": "Actual ScrapeHero test output with job_details items"
+    },
+    {
+      "order": 8,
+      "file": "images/motion-source/08-live-sheet-append-output.png",
+      "moment": "Actual n8n execution output confirming a salary history row was appended"
+    }
+  ]
+}

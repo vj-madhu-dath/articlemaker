@@ -1,0 +1,57 @@
+{
+  "workflow_name": "Glassdoor Salary Range Tracker",
+  "overview_alt": "The complete n8n workflow to track Glassdoor salary ranges with ScrapeHero",
+  "stages": [
+    {
+      "node": "Schedule Trigger",
+      "search": "Schedule Trigger",
+      "alt": "Searching and adding Schedule Trigger in an n8n workflow",
+      "parent": null,
+      "output_index": 0
+    },
+    {
+      "node": "Get row(s) in sheet",
+      "search": "Google Sheets",
+      "action": "Get row(s) in sheet",
+      "alt": "Searching and adding a Google Sheets node to read salary search URLs",
+      "parent": "Schedule Trigger",
+      "output_index": 0
+    },
+    {
+      "node": "Loop Over Items",
+      "search": "Loop Over Items",
+      "alt": "Searching and adding a Loop Over Items node in an n8n workflow",
+      "parent": "Get row(s) in sheet",
+      "output_index": 0
+    },
+    {
+      "node": "ScrapeHero",
+      "search": "ScrapeHero",
+      "alt": "Searching and adding a ScrapeHero n8n node",
+      "parent": "Loop Over Items",
+      "output_index": 1
+    },
+    {
+      "node": "Split Out",
+      "search": "Split Out",
+      "alt": "Searching and adding a Split Out node in an n8n workflow",
+      "parent": "ScrapeHero",
+      "output_index": 0
+    },
+    {
+      "node": "Edit Fields",
+      "search": "Edit Fields",
+      "alt": "Searching and adding an Edit Fields node in an n8n workflow",
+      "parent": "Split Out",
+      "output_index": 0
+    },
+    {
+      "node": "Append row in sheet",
+      "search": "Google Sheets",
+      "action": "Append row in sheet",
+      "alt": "Searching and adding a Google Sheets node to append salary history",
+      "parent": "Edit Fields",
+      "output_index": 0
+    }
+  ]
+}
