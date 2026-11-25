@@ -1,0 +1,105 @@
+{
+  "article_slug": "glassdoor-new-matching-roles-alert",
+  "frames": [
+    {
+      "frame": 1,
+      "description": "Empty canvas - workflow starts here",
+      "capture": "empty_canvas"
+    },
+    {
+      "frame": 2,
+      "description": "Schedule Trigger added and configured",
+      "capture": "schedule_trigger_added"
+    },
+    {
+      "frame": 3,
+      "description": "ScrapeHero Glassdoor node added and connected",
+      "capture": "glassdoor_connected"
+    },
+    {
+      "frame": 4,
+      "description": "Glassdoor node configured - all 9 searches visible",
+      "capture": "glassdoor_configured"
+    },
+    {
+      "frame": 5,
+      "description": "Filter node added and connected",
+      "capture": "filter_connected"
+    },
+    {
+      "frame": 6,
+      "description": "Filter configured - skills, locations, salary ≥$60k, exclude unknowns",
+      "capture": "filter_configured"
+    },
+    {
+      "frame": 7,
+      "description": "Google Sheets (dedup read) added and connected",
+      "capture": "dedup_read_connected"
+    },
+    {
+      "frame": 8,
+      "description": "Deduplication Google Sheets configured - reads job ID history",
+      "capture": "dedup_read_configured"
+    },
+    {
+      "frame": 9,
+      "description": "IF node added - true branch for new jobs",
+      "capture": "if_node_added"
+    },
+    {
+      "frame": 10,
+      "description": "IF configured - checks if job ID exists in history",
+      "capture": "if_configured"
+    },
+    {
+      "frame": 11,
+      "description": "Google Sheets (append) added on true branch",
+      "capture": "dedup_append_connected"
+    },
+    {
+      "frame": 12,
+      "description": "Append Google Sheets configured - writes new job IDs",
+      "capture": "dedup_append_configured"
+    },
+    {
+      "frame": 13,
+      "description": "Merge node added - collects matching jobs",
+      "capture": "merge_connected"
+    },
+    {
+      "frame": 14,
+      "description": "Merge configured - aggregates items for digest",
+      "capture": "merge_configured"
+    },
+    {
+      "frame": 15,
+      "description": "Gmail node added and connected",
+      "capture": "gmail_connected"
+    },
+    {
+      "frame": 16,
+      "description": "Gmail configured - digest template with job details (email blurred)",
+      "capture": "gmail_configured"
+    },
+    {
+      "frame": 17,
+      "description": "Complete workflow overview - clean, no markup",
+      "capture": "workflow_overview"
+    },
+    {
+      "frame": 18,
+      "description": "Test execution - matching jobs found and emailed",
+      "capture": "test_execution_match"
+    },
+    {
+      "frame": 19,
+      "description": "Test execution - filtered out job (salary too low)",
+      "capture": "test_execution_filtered"
+    },
+    {
+      "frame": 20,
+      "description": "Test execution - duplicate suppressed on second run",
+      "capture": "test_execution_duplicate"
+    }
+  ]
+}

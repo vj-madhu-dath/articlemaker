@@ -1,0 +1,29 @@
+{
+  "article_slug": "glassdoor-new-matching-roles-alert",
+  "title": "Glassdoor Alert: New Matching Roles",
+  "focus_keyword": "Glassdoor job alerts n8n",
+  "seo_title": "Glassdoor Alert: New Matching Roles with n8n [Automation]",
+  "seo_description": "Build an n8n workflow that searches Glassdoor daily, filters by skills, location, and salary, and emails new matching roles automatically.",
+  "searches": [
+    {"state": "California", "category": "Marketing"},
+    {"state": "California", "category": "Graphic Designer"},
+    {"state": "California", "category": "Software Developer"},
+    {"state": "New York", "category": "Marketing"},
+    {"state": "New York", "category": "Graphic Designer"},
+    {"state": "New York", "category": "Software Developer"},
+    {"state": "Nevada", "category": "Marketing"},
+    {"state": "Nevada", "category": "Graphic Designer"},
+    {"state": "Nevada", "category": "Software Developer"}
+  ],
+  "min_salary_annual": 60000,
+  "include_unknown_salary": false,
+  "schedule": "daily 8 AM PT",
+  "email_format": "digest",
+  "recipient_email": "madhu.dath@scrapehero.com",
+  "workflow_name": "Glassdoor Alert: New Matching Roles",
+  "credential_placeholders": {
+    "scrapehero": "YOUR_SCRAPEHERO_CREDENTIAL",
+    "google_sheets": "YOUR_GOOGLE_SHEETS_CREDENTIAL",
+    "gmail": "YOUR_GMAIL_CREDENTIAL"
+  }
+}

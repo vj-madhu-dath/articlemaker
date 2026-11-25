@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Glassdoor Alert: New Matching Roles with n8n [Automation]</title>
+    <meta name="description" content="Build an n8n workflow that searches Glassdoor daily, filters by skills, location, and salary, and emails new matching roles automatically.">
+    <!-- Canonical URL is a placeholder - not yet published -->
+    <link rel="canonical" href="https://www.scrapehero.com/glassdoor-new-matching-roles-alert/">
+    
+    <!-- Open Graph -->
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Glassdoor Alert: New Matching Roles with n8n [Automation]">
+    <meta property="og:description" content="Build an n8n workflow that searches Glassdoor daily, filters by skills, location, and salary, and emails new matching roles automatically.">
+    <meta property="og:url" content="https://www.scrapehero.com/glassdoor-new-matching-roles-alert/">
+    <meta property="og:site_name" content="ScrapeHero">
+    <!-- Published time is placeholder - not yet published -->
+    <meta property="article:published_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-01T00:00:00+00:00">
+    <meta property="article:author" content="ScrapeHero">
+    <meta property="article:section" content="n8n">
+    <meta property="article:tag" content="Glassdoor job alerts n8n">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@scrapehero">
+    <meta name="twitter:site" content="@scrapehero">
+    <meta name="twitter:title" content="Glassdoor Alert: New Matching Roles with n8n [Automation]">
+    <meta name="twitter:description" content="Build an n8n workflow that searches Glassdoor daily, filters by skills, location, and salary, and emails new matching roles automatically.">
+    
+    <!-- Schema.org JSON-LD - honest placeholders -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Article",
+                "@id": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/#article",
+                "isPartOf": {"@id": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/"},
+                "author": {
+                    "name": "ScrapeHero",
+                    "@id": "https://www.scrapehero.com/#/schema/person/placeholder"
+                },
+                "headline": "Glassdoor Alert: New Matching Roles with n8n [Automation]",
+                "datePublished": "2026-01-01T00:00:00+00:00",
+                "dateModified": "2026-01-01T00:00:00+00:00",
+                "mainEntityOfPage": {"@id": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/"},
+                "publisher": {"@id": "https://www.scrapehero.com/#organization"},
+                "keywords": ["Glassdoor job alerts n8n", "n8n", "ScrapeHero", "Glassdoor", "job alerts", "Google Sheets", "Gmail"],
+                "articleSection": ["n8n", "ScrapeHero Cloud Resources"],
+                "inLanguage": "en-US"
+            },
+            {
+                "@type": "WebPage",
+                "@id": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/",
+                "url": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/",
+                "name": "Glassdoor Alert: New Matching Roles with n8n [Automation]",
+                "isPartOf": {"@id": "https://www.scrapehero.com/#website"},
+                "datePublished": "2026-01-01T00:00:00+00:00",
+                "dateModified": "2026-01-01T00:00:00+00:00",
+                "description": "Build an n8n workflow that searches Glassdoor daily, filters by skills, location, and salary, and emails new matching roles automatically.",
+                "breadcrumb": {"@id": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/#breadcrumb"},
+                "inLanguage": "en-US"
+            },
+            {
+                "@type": "BreadcrumbList",
+                "@id": "https://www.scrapehero.com/glassdoor-new-matching-roles-alert/#breadcrumb",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.scrapehero.com/"},
+                    {"@type": "ListItem", "position": 2, "name": "Glassdoor Alert: New Matching Roles with n8n [Automation]"}
+                ]
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <style>
+        :root {
+            --sh-primary: #363636;
+            --sh-secondary: #363636;
+            --sh-text: #424242;
+            --sh-accent: #209CEE;
+            --sh-accent-hover: #006DDA;
+            --sh-bg: #FFFFFF;
+            --sh-bg-alt: #F9F7F6;
+            --sh-border: #DBDBDB;
+            --sh-code-bg: #F5F5F5;
+            --sh-table-header-bg: #363636;
+            --sh-table-header-text: #FFFFFF;
+            --sh-table-row-alt: #F5F5F5;
+            --sh-green: #23A455;
+            --sh-orange: #E66325;
+            --sh-red: #CF2E2E;
+            --sh-font-primary: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --sh-font-mono: "JetBrains Mono", "Fira Code", "SF Mono", Monaco, monospace;
+            --container-max-width: 1140px;
+            --widgets-spacing: 20px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--sh-font-primary);
+            font-size: 1.0625rem;
+            line-height: 1.7;
+            color: var(--sh-text);
+            background-color: var(--sh-bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .page-wrapper {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        /* Header */
+        .site-header {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--sh-border);
+            background: var(--sh-bg);
+        }
+        
+        .site-branding {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .site-logo {
+            width: 135px;
+            height: auto;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1.5rem 0;
+            font-size: 0.875rem;
+            color: #707077;
+        }
+        
+        .breadcrumb a {
+            color: var(--sh-accent);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb span {
+            margin: 0 0.5rem;
+        }
+        
+        /* Article Header */
+        .article-header {
+            margin-bottom: 3rem;
+        }
+        
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #707077;
+        }
+        
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        
+        .author-name {
+            font-weight: 500;
+            color: var(--sh-primary);
+            text-decoration: none;
+        }
+        
+        .author-name:hover {
+            color: var(--sh-accent);
+        }
+        
+        .entry-title {
+            font-family: var(--sh-font-primary);
+            font-size: 2.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--sh-primary);
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 767px) {
+            .entry-title {
+                font-size: 1.9rem;
+            }
+        }
+        
+        /* Article Content */
+        .article-content {
+            font-size: 1.0625rem;
+            line-height: 1.7;
+        }
+        
+        .article-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .article-content strong {
+            font-weight: 600;
+            color: var(--sh-primary);
+        }
+        
+        .article-content em {
+            font-style: italic;
+        }
+        
+        .article-content a {
+            color: var(--sh-accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        
+        .article-content a:hover {
+            border-bottom-color: var(--sh-accent);
+        }
+        
+        /* Headings */
+        .article-content h2 {
+            font-family: var(--sh-font-primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            margin: 3rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--sh-border);
+        }
+        
+        .article-content h3 {
+            font-family: var(--sh-font-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            margin: 2.5rem 0 1rem;
+        }
+        
+        /* Code Blocks */
+        .article-content pre {
+            background: var(--sh-code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--sh-border);
+        }
+        
+        .article-content code {
+            font-family: var(--sh-font-mono);
+            font-size: 0.9em;
+        }
+        
+        .article-content pre code {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--sh-text);
+            background: none;
+            padding: 0;
+        }
+        
+        .article-content p code {
+            background: var(--sh-code-bg);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--sh-primary);
+        }
+        
+        /* Tables */
+        .wp-block-table-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        
+        .wp-block-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+        
+        .wp-block-table th {
+            background: var(--sh-table-header-bg);
+            color: var(--sh-table-header-text);
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            border: 1px solid var(--sh-border);
+        }
+        
+        .wp-block-table td {
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--sh-border);
+            vertical-align: top;
+        }
+        
+        .wp-block-table tbody tr.alt td {
+            background: var(--sh-table-row-alt);
+        }
+        
+        .wp-block-table tbody tr:hover td {
+            background: #f0f0f0;
+        }
+        
+        .wp-block-table td code {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        /* Lists */
+        .article-content ul, .article-content ol {
+            margin: 1.5rem 0 1.5rem 1.5rem;
+            padding-left: 1rem;
+        }
+        
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .article-content li::marker {
+            color: var(--sh-accent);
+        }
+        
+        /* Images */
+        .wp-block-image {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .wp-block-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .wp-element-caption {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: #707077;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        /* Horizontal Rule */
+        hr.wp-block-separator {
+            border: none;
+            border-top: 2px dotted var(--sh-border);
+            margin: 3rem 0;
+        }
+        
+        /* Callout Boxes */
+        .callout {
+            background: var(--sh-bg-alt);
+            border-left: 4px solid var(--sh-accent);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .callout.warning {
+            border-left-color: var(--sh-orange);
+            background: #FFF8F0;
+        }
+        
+        .callout.success {
+            border-left-color: var(--sh-green);
+            background: #F0FDF4;
+        }
+        
+        .callout.danger {
+            border-left-color: var(--sh-red);
+            background: #FEF2F2;
+        }
+        
+        /* FAQ Section */
+        .faq-section {
+            margin-top: 3rem;
+        }
+        
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--sh-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            background: var(--sh-bg-alt);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-question::after {
+            content: '+';
+            font-size: 1.25rem;
+            color: var(--sh-accent);
+            transition: transform 0.2s;
+        }
+        
+        .faq-item.open .faq-question::after {
+            transform: rotate(45deg);
+        }
+        
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item.open .faq-answer {
+            padding: 1.5rem;
+            max-height: 500px;
+        }
+        
+        .faq-answer p {
+            margin-bottom: 1rem;
+        }
+        
+        .faq-answer p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Wrapping Up / CTA */
+        .wrapping-up {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--sh-border);
+        }
+        
+        .cta-box {
+            background: var(--sh-bg-alt);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .cta-box h3 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--sh-accent);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background: var(--sh-accent-hover);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--sh-accent);
+            border: 2px solid var(--sh-accent);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--sh-accent);
+            color: #fff;
+        }
+        
+        /* Footer */
+        .site-footer {
+            margin-top: 4rem;
+            padding: 3rem 0 2rem;
+            border-top: 1px solid var(--sh-border);
+            background: var(--sh-bg-alt);
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-col h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--sh-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .footer-col ul {
+            list-style: none;
+        }
+        
+        .footer-col li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-col a {
+            color: var(--sh-text);
+            text-decoration: none;
+        }
+        
+        .footer-col a:hover {
+            color: var(--sh-accent);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--sh-border);
+            color: #707077;
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .page-wrapper {
+                padding: 0 1.5rem;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .page-wrapper {
+                padding: 0 1rem;
+            }
+            
+            .entry-title {
+                font-size: 1.75rem;
+            }
+            
+            .article-content h2 {
+                font-size: 1.25rem;
+            }
+            
+            .article-content h3 {
+                font-size: 1.125rem;
+            }
+            
+            .cta-box {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Print */
+        @media print {
+            .site-header, .breadcrumb, .site-footer, .btn {
+                display: none;
+            }
+            
+            .page-wrapper {
+                max-width: none;
+                padding: 0;
+            }
+            
+            .article-content pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="site-header">
+            <div class="site-branding">
+                <a href="https://www.scrapehero.com/" aria-label="ScrapeHero Home">
+                    <svg class="site-logo" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect width="800" height="800" fill="#363636" rx="80"/>
+                        <text x="400" y="520" font-family="Figtree, sans-serif" font-size="320" font-weight="700" fill="white" text-anchor="middle">SH</text>
+                    </svg>
+                </a>
+            </div>
+        </header>
+        
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="https://www.scrapehero.com/">Home</a>
+            <span>/</span>
+            <span aria-current="page">Glassdoor Alert: New Matching Roles with n8n</span>
+        </nav>
+        
+        <!-- Article -->
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <div class="article-author">
+                        <!-- Generic ScrapeHero avatar, not a specific person -->
+                        <img class="author-avatar" src="https://www.scrapehero.com/favicon.ico" alt="" loading="lazy" onerror="this.src='https://secure.gravatar.com/avatar/00000000000000000000000000000000?s=96&d=mp'">
+                        <a class="author-name" href="https://www.scrapehero.com/" target="_blank" rel="noopener">ScrapeHero</a>
+                    </div>
+                    <!-- No publication date - not yet published -->
+                </div>
+                <h1 class="entry-title">Glassdoor Alert: New Matching Roles with n8n</h1>
+            </header>
+            
+            <div class="article-content">
+                <p>Stop checking Glassdoor manually. Build an n8n workflow that searches for you, filters by your criteria, and emails new matching roles every morning—without duplicates.</p>
+<h2>What You'll Build</h2>
+<p>A daily 8 AM PT workflow that:</p>
+<ul><li>Searches Glassdoor for <strong>Marketing</strong>, <strong>Graphic Designer</strong>, and <strong>Software Developer</strong> roles in <strong>California</strong>, <strong>New York</strong>, and <strong>Nevada</strong> (9 searches total)</li><li>Filters for salaries ≥ <strong>$60,000/year</strong> (ignores listings with no salary estimate)</li><li>Tracks <code>job_listing_id</code> in Google Sheets to <strong>never alert on the same job twice</strong></li><li>Sends <strong>one digest email</strong> with all new matches to <code>madhu.dath@scrapehero.com</code></li></ul>
+<h2>Prerequisites</h2>
+<ul><li><strong>n8n</strong> (self-hosted or n8n.cloud)</li><li><strong>ScrapeHero Glassdoor API access</strong> — enabled on your ScrapeHero account</li><li><strong>Google account</strong> — for the deduplication sheet</li><li><strong>Gmail account</strong> — for sending alerts</li></ul>
+<h2>Step 1: Create the Deduplication Google Sheet</h2>
+<ol><li>Open <a href="https://sheets.google.com" target="_blank" rel="noopener">Google Sheets</a> and create a new spreadsheet named <strong>Glassdoor Job Alert History</strong>.</li><li>In the first sheet (tab), rename it to <strong>Job History</strong>.</li><li>Add these headers in row 1:</li></ol>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>A</th><th>B</th><th>C</th></tr></thead>
+<tbody><tr><td><code>job_listing_id</code></td><td><code>observed_at</code></td><td><code>title</code></td></tr></tbody>
+</table>
+</div>
+<ol><li>Share the sheet with your n8n Google Sheets credential (the service account email if using one).</li><li><strong>Copy the spreadsheet ID</strong> from the URL: <code>https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit</code></li><li>- You'll select this sheet via n8n's Google Sheets picker—no need to paste the ID manually.</li></ol>
+<h2>Step 2: Add the Schedule Trigger</h2>
+<ol><li>In n8n, create a new workflow named <strong>Glassdoor Alert: New Matching Roles</strong>.</li><li>Click <strong>+</strong> → search <strong>"Schedule Trigger"</strong> → add it.</li><li>Configure:</li><li>- <strong>Trigger Interval</strong>: <code>Every Day</code></li><li>- <strong>Hour</strong>: <code>8</code> (this is UTC; for 8 AM PT use <code>15</code> in UTC during standard time, <code>16</code> during daylight time)</li><li>- <strong>Minute</strong>: <code>0</code></li><li>- <strong>Timezone</strong>: <code>America/Los_Angeles</code></li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/01-schedule-trigger-added.png" alt="Add Schedule Trigger" loading="lazy" />
+<figcaption class="wp-element-caption">Add Schedule Trigger</figcaption>
+</figure>
+<h2>Step 3: Add ScrapeHero Glassdoor Job Results</h2>
+<ol><li>Click <strong>+</strong> on the Schedule Trigger output → search <strong>"ScrapeHero: Glassdoor Job Results"</strong> → add it.</li><li>Select your <strong>ScrapeHero credential</strong> (or create one with your API key).</li><li>Configure <strong>9 searches</strong> — one per state/category combo:</li></ol>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>#</th><th>State</th><th>Category</th></tr></thead>
+<tbody><tr><td>1</td><td>California</td><td>Marketing</td></tr><tr class="alt"><td>2</td><td>California</td><td>Graphic Designer</td></tr><tr><td>3</td><td>California</td><td>Software Developer</td></tr><tr class="alt"><td>4</td><td>New York</td><td>Marketing</td></tr><tr><td>5</td><td>New York</td><td>Graphic Designer</td></tr><tr class="alt"><td>6</td><td>New York</td><td>Software Developer</td></tr><tr><td>7</td><td>Nevada</td><td>Marketing</td></tr><tr class="alt"><td>8</td><td>Nevada</td><td>Graphic Designer</td></tr><tr><td>9</td><td>Nevada</td><td>Software Developer</td></tr></tbody>
+</table>
+</div>
+<ol><li>For each search:</li><li>- <strong>Search Type</strong>: <code>Job Search</code></li><li>- <strong>Location</strong>: select the state</li><li>- <strong>Job Category</strong>: select the category</li><li>- <strong>Results Per Page</strong>: <code>30</code></li><li>- <strong>Max Pages</strong>: <code>1</code></li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/02-glassdoor-configured.png" alt="Glassdoor node with 9 searches" loading="lazy" />
+<figcaption class="wp-element-caption">Glassdoor node with 9 searches</figcaption>
+</figure>
+<p>> <strong>Important</strong>: Do not follow the API's <code>next</code> URL. The node handles pagination; set <code>Max Pages</code> to <code>1</code> for the latest 30 results per search.</p>
+<h2>Step 4: Add the Filter Node</h2>
+<ol><li>Click <strong>+</strong> on Glassdoor output → search <strong>"Filter"</strong> → add it.</li><li>Set <strong>Mode</strong> to <code>Manual</code> (or <code>Advanced</code> if you prefer expressions).</li><li>Add these conditions (all must match — <strong>AND</strong> logic):</li></ol>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>Field</th><th>Operation</th><th>Value</th></tr></thead>
+<tbody><tr><td><code>salary_min_annual</code></td><td><strong>≥ (Number)</strong></td><td><code>60000</code></td></tr><tr class="alt"><td><code>salary_estimate_source</code></td><td><strong>Not Equal (String)</strong></td><td><code>null</code> (or leave empty to exclude missing salaries)</td></tr></tbody>
+</table>
+</div>
+<ol><li>The Filter will pass only jobs with a parsed annual minimum ≥ $60,000 <strong>and</strong> a salary estimate present.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/03-filter-configured.png" alt="Filter configured" loading="lazy" />
+<figcaption class="wp-element-caption">Filter configured</figcaption>
+</figure>
+<p>> <strong>How salary parsing works</strong>: The ScrapeHero node returns <code>salary_min</code>, <code>salary_max</code>, <code>salary_currency</code>, <code>salary_period</code>, and <code>salary_estimate_source</code>. The workflow includes a hidden <strong>Edit Fields</strong> node (or you can use expressions in Filter) that normalizes everything to <code>salary_min_annual</code>: > - Annual: use as-is > - Monthly: × 12 > - Hourly: × 2080 (40 hrs × 52 weeks) > - Missing estimate → <code>salary_estimate_source</code> is empty/null → excluded by the second condition</p>
+<h2>Step 5: Add Deduplication — Read Job History</h2>
+<ol><li>Click <strong>+</strong> on Filter output (true branch) → search <strong>"Google Sheets"</strong> → add it.</li><li>Select your <strong>Google Sheets credential</strong>.</li><li><strong>Resource</strong>: <code>Sheet</code> → <strong>Operation</strong>: <code>Read</code>.</li><li>Click the <strong>Document</strong> field → <strong>Select from list</strong> → choose <strong>Glassdoor Job Alert History</strong>.</li><li><strong>Sheet</strong>: <code>Job History</code> (tab with the headers you created).</li><li><strong>Range</strong>: <code>A:C</code> (or leave empty to read all).</li><li><strong>Options</strong> → <strong>Return All</strong>: <code>true</code>.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/04-dedup-read-configured.png" alt="Deduplication read configured" loading="lazy" />
+<figcaption class="wp-element-caption">Deduplication read configured</figcaption>
+</figure>
+<p>This reads every <code>job_listing_id</code> ever alerted.</p>
+<h2>Step 6: Add IF Node — Is This Job New?</h2>
+<ol><li>Click <strong>+</strong> on Google Sheets (read) output → search <strong>"IF"</strong> → add it.</li><li><strong>Mode</strong>: <code>Expression</code>.</li><li><strong>Condition</strong>: check if the current job's <code>job_listing_id</code> is <strong>not</strong> in the history.</li></ol>
+<p>Expression (adjust field names to match your Glassdoor output):</p>
+
+<pre class="wp-block-code"><code class="language-javascript">// Returns true if job is NEW (not in history)
+const history = $node["Google Sheets (Read Job History)"].parameter.options.returnAll 
+  ? $node["Google Sheets (Read Job History)"].json 
+  : [];
+
+const currentId = $json.job_listing_id;
+return !history.some(row => row.job_listing_id === currentId);</code></pre>
+
+<figure class="wp-block-image size-full">
+<img src="images/05-if-configured.png" alt="IF node configured" loading="lazy" />
+<figcaption class="wp-element-caption">IF node configured</figcaption>
+</figure>
+<ul><li><strong>True branch</strong> → new job → continue to append + collect</li><li><strong>False branch</strong> → already alerted → stop (no connection needed)</li></ul>
+<h2>Step 7: Add Deduplication — Append New Job ID</h2>
+<ol><li>On the <strong>IF true</strong> output → click <strong>+</strong> → search <strong>"Google Sheets"</strong> → add it.</li><li>Same credential, <strong>Resource</strong>: <code>Sheet</code> → <strong>Operation</strong>: <code>Append</code>.</li><li><strong>Document</strong>: select <strong>Glassdoor Job Alert History</strong> via picker.</li><li><strong>Sheet</strong>: <code>Job History</code>.</li><li><strong>Options</strong> → <strong>Value Input Mode</strong>: <code>USER_ENTERED</code>.</li><li><strong>Map Automatically</strong>: <strong>ON</strong> — this matches your Edit Fields output to the sheet headers.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/06-dedup-append-configured.png" alt="Append configured" loading="lazy" />
+<figcaption class="wp-element-caption">Append configured</figcaption>
+</figure>
+<ol><li>Connect an <strong>Edit Fields</strong> node before this (or use the IF's output directly) with these fields:</li><li>- <code>job_listing_id</code>: <code>={{ $json.job_listing_id }}</code></li><li>- <code>observed_at</code>: <code>={{ new Date().toISOString() }}</code></li><li>- <code>title</code>: <code>={{ $json.title }}</code></li></ol>
+<h2>Step 8: Add Merge Node — Collect Matches for Digest</h2>
+<ol><li>On the <strong>IF true</strong> output (after or parallel to Append) → click <strong>+</strong> → search <strong>"Merge"</strong> → add it.</li><li><strong>Mode</strong>: <code>Append</code> (or <code>Collect</code> depending on n8n version).</li><li><strong>Include</strong>: <code>All Inputs</code>.</li><li>This gathers every new matching job into one array for the email.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/07-merge-configured.png" alt="Merge configured" loading="lazy" />
+<figcaption class="wp-element-caption">Merge configured</figcaption>
+</figure>
+<h2>Step 9: Add Gmail — Send Digest Email</h2>
+<ol><li>Click <strong>+</strong> on Merge output → search <strong>"Gmail"</strong> → add it.</li><li>Select your <strong>Gmail credential</strong> (OAuth2).</li><li><strong>Resource</strong>: <code>Message</code> → <strong>Operation</strong>: <code>Send</code>.</li><li><strong>To</strong>: <code>madhu.dath@scrapehero.com</code> (use an expression if you want it configurable).</li><li><strong>Subject</strong>: <code>🔔 {{ $now.format("MMM d") }} — {{ $json.length }} New Glassdoor Matches</code></li><li><strong>Body (HTML)</strong>: toggle to HTML and use a template like:</li></ol>
+
+<pre class="wp-block-code"><code class="language-html"><h2>{{ $json.length }} new matching roles found on {{ $now.format("MMMM d, yyyy") }}</h2>
+<ul>
+{{#each $json}}
+  <li>
+    <strong>{{ title }}</strong> — {{ company_name }}<br>
+    📍 {{ location }} | 💰 ${{ salary_min_annual.toLocaleString() }}/yr ({{ salary_estimate_source }})<br>
+    <a href="{{ job_url }}">View on Glassdoor</a>
+  </li>
+{{/each}}
+</ul>
+<p style="color:#666;font-size:0.9em;">You received this because you subscribed to Glassdoor alerts via n8n.</p></code></pre>
+<ol><li><strong>Options</strong> → <strong>Send As</strong>: <code>HTML</code>.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/08-gmail-configured.png" alt="Gmail configured (email blurred)" loading="lazy" />
+<figcaption class="wp-element-caption">Gmail configured (email blurred)</figcaption>
+</figure>
+<h2>Step 10: Test the Workflow</h2>
+<ol><li>Save the workflow.</li><li>Click <strong>Execute Workflow</strong> (manual run).</li><li>Check the execution log:</li><li>- <strong>Glassdoor</strong>: 9 searches × ~30 results = ~270 jobs fetched</li><li>- <strong>Filter</strong>: passes only ≥$60k with salary estimates</li><li>- <strong>IF true</strong>: new jobs not in history</li><li>- <strong>Append</strong>: writes new job IDs to sheet</li><li>- <strong>Merge</strong>: collects matches</li><li>- <strong>Gmail</strong>: sends one digest email</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/09-test-execution-match.png" alt="Test execution — matches found" loading="lazy" />
+<figcaption class="wp-element-caption">Test execution — matches found</figcaption>
+</figure>
+<ol><li>Run a <strong>second time</strong> immediately — the email should be empty (or not sent if you add a "no matches" check) because all jobs are now in history.</li></ol>
+
+<figure class="wp-block-image size-full">
+<img src="images/10-test-execution-duplicate.png" alt="Test execution — duplicate suppressed" loading="lazy" />
+<figcaption class="wp-element-caption">Test execution — duplicate suppressed</figcaption>
+</figure>
+<h2>Step 11: Activate (When Ready)</h2>
+<ol><li>Toggle <strong>Active</strong> in the top-right.</li><li>The workflow will now run daily at 8 AM PT.</li></ol>
+<h2>Troubleshooting</h2>
+
+<div class="wp-block-table-container">
+<table class="wp-block-table is-style-stripes">
+<thead><tr><th>Issue</th><th>Fix</th></tr></thead>
+<tbody><tr><td>No jobs found</td><td>Verify ScrapeHero credential has Glassdoor Job Results API access enabled</td></tr><tr class="alt"><td>Salary filter not working</td><td>Check <code>salary_min_annual</code> expression; log a sample Glassdoor item to inspect fields</td></tr><tr><td>Duplicate alerts</td><td>Ensure IF condition matches <code>job_listing_id</code> exactly; check Google Sheets read range</td></tr><tr class="alt"><td>Gmail fails</td><td>Re-authenticate Gmail credential; check "Less secure apps" / OAuth consent</td></tr></tbody>
+</table>
+</div>
+<h2>FAQ</h2>
+<div class="faq-item"><div class="faq-question">Can I add more states or categories?</div>
+<div class="faq-answer"><p>Yes—add more searches in the Glassdoor node. Each search is one state + one category.</p></div></div>
+<div class="faq-item"><div class="faq-question">What if a job's salary is listed as a range ($70k–$90k)?</div>
+<div class="faq-answer"><p>The node parses <code>salary_min</code> and <code>salary_max</code>. The filter uses <code>salary_min_annual</code> (normalized), so a $70k–$90k job passes the ≥$60k check.</p></div></div>
+<div class="faq-item"><div class="faq-question">What about hourly or monthly salaries?</div>
+<div class="faq-answer"><p>The normalization (in Edit Fields or Filter expression) converts: - Monthly × 12 - Hourly × 2080 - Annual as-is</p></div></div>
+<div class="faq-item"><div class="faq-question">Can I use a different email address?</div>
+<div class="faq-answer"><p>Yes—change the <strong>To</strong> field in the Gmail node. For production, consider an n8n environment variable.</p></div></div>
+<div class="faq-item"><div class="faq-question">Does this work on n8n.cloud?</div>
+<div class="faq-answer"><p>Yes. All nodes used are available on n8n.cloud.</p></div></div>
+<div class="faq-item"><div class="faq-question">What if I want separate emails per job?</div>
+<div class="faq-answer"><p>Change the Merge node to pass items individually and connect Gmail directly to IF true (remove Merge). Add a Loop Over Items if needed.</p></div></div>
+<h2>Workflow Export</h2>
+<p>Download the workflow JSON: <a href="workflow.json" target="_blank" rel="noopener">workflow.json</a></p>
+<p>Import in n8n → <strong>Workflows</strong> → <strong>Import</strong> → select the file. Replace credential placeholders with your actual credentials.</p>
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+<p><em>Built with n8n and ScrapeHero. Automate your job search.</em></p>
+            </div>
+        </article>
+        
+        <!-- Footer -->
+        <footer class="site-footer" role="contentinfo">
+            <div class="page-wrapper">
+                <div class="footer-content">
+                    <div class="footer-col">
+                        <h4>ScrapeHero</h4>
+                        <ul>
+                            <li><a href="https://www.scrapehero.com/">Home</a></li>
+                            <li><a href="https://www.scrapehero.com/services/">Managed Web Scraping</a></li>
+                            <li><a href="https://www.scrapehero.com/marketplace/">ScrapeHero Marketplace</a></li>
+                            <li><a href="https://www.scrapehero.com/cloud/">ScrapeHero Cloud</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="https://www.scrapehero.com/articles/">All Articles</a></li>
+                            <li><a href="https://www.scrapehero.com/n8n/">n8n Integration</a></li>
+                            <li><a href="https://www.scrapehero.com/api-documentation/">API Documentation</a></li>
+                            <li><a href="https://www.scrapehero.com/pricing/">Pricing</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="https://www.scrapehero.com/about/">About Us</a></li>
+                            <li><a href="https://www.scrapehero.com/contact/">Contact</a></li>
+                            <li><a href="https://www.scrapehero.com/careers/">Careers</a></li>
+                            <li><a href="https://www.scrapehero.com/privacy-policy/">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Connect</h4>
+                        <ul>
+                            <li><a href="https://x.com/scrapehero" target="_blank" rel="noopener">X (Twitter)</a></li>
+                            <li><a href="https://www.linkedin.com/company/scrape-hero" target="_blank" rel="noopener">LinkedIn</a></li>
+                            <li><a href="https://github.com/scrapehero" target="_blank" rel="noopener">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 ScrapeHero. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- FAQ Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.faq-question').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    this.parentElement.classList.toggle('open');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

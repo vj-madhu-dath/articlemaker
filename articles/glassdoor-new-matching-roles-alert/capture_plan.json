@@ -1,0 +1,78 @@
+{
+  "article_slug": "glassdoor-new-matching-roles-alert",
+  "workflow_name": "Glassdoor Alert: New Matching Roles",
+  "stages": [
+    {
+      "stage": 1,
+      "node": "Schedule Trigger",
+      "search_query": "schedule trigger",
+      "parent_node": null,
+      "output_index": 0,
+      "alt": "Add Schedule Trigger",
+      "action": "click"
+    },
+    {
+      "stage": 2,
+      "node": "ScrapeHero: Glassdoor Job Results",
+      "search_query": "scrapehero glassdoor",
+      "parent_node": "Schedule Trigger",
+      "output_index": 0,
+      "alt": "Glassdoor node with 9 searches",
+      "action": "click"
+    },
+    {
+      "stage": 3,
+      "node": "Filter: Salary ≥$60k & Has Estimate",
+      "search_query": "filter",
+      "parent_node": "ScrapeHero: Glassdoor Job Results",
+      "output_index": 0,
+      "alt": "Filter configured",
+      "action": "click"
+    },
+    {
+      "stage": 4,
+      "node": "Google Sheets: Read Job History",
+      "search_query": "google sheets",
+      "parent_node": "Filter: Salary ≥$60k & Has Estimate",
+      "output_index": 0,
+      "alt": "Deduplication read configured",
+      "action": "click"
+    },
+    {
+      "stage": 5,
+      "node": "IF: Is New Job?",
+      "search_query": "if",
+      "parent_node": "Google Sheets: Read Job History",
+      "output_index": 0,
+      "alt": "IF node configured",
+      "action": "click"
+    },
+    {
+      "stage": 6,
+      "node": "Google Sheets: Append New Job ID",
+      "search_query": "google sheets",
+      "parent_node": "IF: Is New Job?",
+      "output_index": 0,
+      "alt": "Append configured",
+      "action": "click"
+    },
+    {
+      "stage": 7,
+      "node": "Merge: Collect Matches",
+      "search_query": "merge",
+      "parent_node": "IF: Is New Job?",
+      "output_index": 0,
+      "alt": "Merge configured",
+      "action": "click"
+    },
+    {
+      "stage": 8,
+      "node": "Gmail: Send Digest Email",
+      "search_query": "gmail",
+      "parent_node": "Merge: Collect Matches",
+      "output_index": 0,
+      "alt": "Gmail configured (email blurred)",
+      "action": "click"
+    }
+  ]
+}

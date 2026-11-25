@@ -1,0 +1,355 @@
+{
+  "name": "Glassdoor Alert: New Matching Roles",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "cronExpression": "0 15 * * *",
+              "timezone": "America/Los_Angeles"
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Schedule Trigger (Daily 8 AM PT)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "searches": [
+          {
+            "searchType": "jobSearch",
+            "location": "California",
+            "jobCategory": "Marketing",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "California",
+            "jobCategory": "Graphic Designer",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "California",
+            "jobCategory": "Software Developer",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "New York",
+            "jobCategory": "Marketing",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "New York",
+            "jobCategory": "Graphic Designer",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "New York",
+            "jobCategory": "Software Developer",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "Nevada",
+            "jobCategory": "Marketing",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "Nevada",
+            "jobCategory": "Graphic Designer",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          },
+          {
+            "searchType": "jobSearch",
+            "location": "Nevada",
+            "jobCategory": "Software Developer",
+            "resultsPerPage": 30,
+            "maxPages": 1
+          }
+        ],
+        "options": {}
+      },
+      "id": "2",
+      "name": "ScrapeHero: Glassdoor Job Results",
+      "type": "n8n-nodes-base.scrapeheroGlassdoorJobResults",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "credentials": {
+        "scrapeheroApi": "YOUR_SCRAPEHERO_CREDENTIAL"
+      }
+    },
+    {
+      "parameters": {
+        "mode": "advanced",
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.salary_min_annual }}",
+              "operation": "largerEqual",
+              "value2": 60000
+            }
+          ],
+          "string": [
+            {
+              "value1": "={{ $json.salary_estimate_source }}",
+              "operation": "notEqual",
+              "value2": ""
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Filter: Salary ≥$60k & Has Estimate",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "sheetId": "={{ $parameter.documentId }}",
+        "range": "A:C",
+        "options": {
+          "returnAll": true
+        }
+      },
+      "id": "4",
+      "name": "Google Sheets: Read Job History",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1000, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "string": [
+            {
+              "value1": "={{ !$node[\"Google Sheets: Read Job History\"].json.some(row => row.job_listing_id === $json.job_listing_id) }}",
+              "operation": "true"
+            }
+          ]
+        }
+      },
+      "id": "5",
+      "name": "IF: Is New Job?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "={{ $parameter.documentId }}",
+        "range": "A:C",
+        "valueInputMode": "USER_ENTERED",
+        "options": {},
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": [
+            {
+              "column": "job_listing_id",
+              "value": "={{ $json.job_listing_id }}"
+            },
+            {
+              "column": "observed_at",
+              "value": "={{ new Date().toISOString() }}"
+            },
+            {
+              "column": "title",
+              "value": "={{ $json.title }}"
+            }
+          ]
+        }
+      },
+      "id": "6",
+      "name": "Google Sheets: Append New Job ID",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1500, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+      }
+    },
+    {
+      "parameters": {
+        "mode": "collect",
+        "options": {}
+      },
+      "id": "7",
+      "name": "Merge: Collect Matches",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "fromEmail": "",
+        "toEmail": "madhu.dath@scrapehero.com",
+        "subject": "🔔 {{ $now.format(\"MMM d\") }} — {{ $json.length }} New Glassdoor Matches",
+        "html": "<h2>{{ $json.length }} new matching roles found on {{ $now.format(\"MMMM d, yyyy\") }}</h2>\n<ul>\n{{#each $json}}\n  <li>\n    <strong>{{ title }}</strong> — {{ company_name }}<br>\n    📍 {{ location }} | 💰 ${{ salary_min_annual.toLocaleString() }}/yr ({{ salary_estimate_source }})<br>\n    <a href=\"{{ job_url }}\">View on Glassdoor</a>\n  </li>\n{{/each}}\n</ul>\n<p style=\"color:#666;font-size:0.9em;\">You received this because you subscribed to Glassdoor alerts via n8n.</p>",
+        "options": {
+          "sendAs": "html"
+        }
+      },
+      "id": "8",
+      "name": "Gmail: Send Digest Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1750, 300],
+      "credentials": {
+        "gmailOAuth2Api": "YOUR_GMAIL_CREDENTIAL"
+      }
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "salary_min_annual",
+              "value": "={{ \n  const period = $json.salary_period;\n  const min = $json.salary_min;\n  if (!min || !period) return null;\n  switch (period.toLowerCase()) {\n    case 'year': case 'annual': return min;\n    case 'month': case 'monthly': return min * 12;\n    case 'hour': case 'hourly': return min * 2080;\n    default: return null;\n  }\n}}",
+              "type": "number"
+            },
+            {
+              "name": "salary_estimate_source",
+              "value": "={{ $json.salary_estimate_source || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9",
+      "name": "Edit Fields: Normalize Salary",
+      "type": "n8n-nodes-base.editFields",
+      "typeVersion": 1,
+      "position": [750, 450]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Daily 8 AM PT)": {
+      "main": [
+        [
+          {
+            "node": "ScrapeHero: Glassdoor Job Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeHero: Glassdoor Job Results": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields: Normalize Salary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields: Normalize Salary": {
+      "main": [
+        [
+          {
+            "node": "Filter: Salary ≥$60k & Has Estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: Salary ≥$60k & Has Estimate": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Read Job History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets: Read Job History": {
+      "main": [
+        [
+          {
+            "node": "IF: Is New Job?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Is New Job?": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Append New Job ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge: Collect Matches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          null
+        ]
+      ]
+    },
+    "Google Sheets: Append New Job ID": {
+      "main": [
+        []
+      ]
+    },
+    "Merge: Collect Matches": {
+      "main": [
+        [
+          {
+            "node": "Gmail: Send Digest Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

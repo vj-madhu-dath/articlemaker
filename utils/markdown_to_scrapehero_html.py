@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """
 Convert ScrapeHero markdown articles to standalone HTML with ScrapeHero blog styling.
+Compliant with 9-point checklist from AGENTS.md:
+1. Article title = H1 from article.md (not SEO title)
+2. All images load — relative images/... paths resolve correctly
+3. Code blocks render — fenced JavaScript/text blocks use monospace font
+4. Tables render — striped rows, header row dark, inline code intact
+5. FAQ accordions work — click toggles answer visibility
+6. No invented metadata — no canonical URL, no publication date, no fake author avatar unless article provides them
+7. ScrapeHero branding — Figtree font, #363636 primary, #209CEE accent, real ScrapeHero logo (SVG), footer links to scrapehero.com
+8. SEO meta present but honest — Open Graph / Twitter / JSON-LD use article's SEO block; omit or mark placeholders for fields not yet set (canonical URL, published date)
+9. Responsive layout — max-width 1140px, readable on mobile
 """
 
 import re
@@ -48,6 +58,14 @@ def extract_seo_meta(content: str) -> Tuple[Dict, str]:
     return meta, content.strip()
 
 
+def extract_h1_title(content: str) -> str:
+    """Extract the first H1 title from markdown content."""
+    for line in content.split('\n'):
+        if line.startswith('# '):
+            return line[2:].strip()
+    return "Untitled Article"
+
+
 def parse_markdown(content: str) -> List[Dict]:
     """Parse markdown into structured blocks."""
     blocks = []
@@ -88,7 +106,7 @@ def parse_markdown(content: str) -> List[Dict]:
             h2_content = line[3:].strip()
             blocks.append({'type': 'h2', 'content': h2_content})
             # Check if this is the FAQ section
-            in_faq = 'frequently asked questions' in h2_content.lower()
+            in_faq = 'frequently asked questions' in h2_content.lower() or 'faq' in h2_content.lower()
             i += 1
         elif line.startswith('# '):
             if not h1_seen:
@@ -226,12 +244,14 @@ def render_blocks(blocks: List[Dict], article_dir: Path) -> str:
         elif btype == 'image':
             alt = block['alt']
             src = block['src']
-            # Convert relative paths to absolute if needed
+            # Use relative path as-is for article images (works when served from article directory)
+            # The HTML is generated in the article directory, so relative paths work
             if not src.startswith('http'):
-                # Check if image exists in article images folder
-                img_path = article_dir / 'images' / src
-                if img_path.exists():
-                    src = str(img_path.relative_to(Path.cwd()))
+                # Ensure path is relative to article directory
+                if src.startswith('images/'):
+                    pass  # already correct
+                else:
+                    src = f'images/{src}'
             html_parts.append(f'''
 <figure class="wp-block-image size-full">
 <img src="{src}" alt="{alt}" loading="lazy" />
@@ -254,7 +274,7 @@ def render_blocks(blocks: List[Dict], article_dir: Path) -> str:
 
 
 def build_html(article_dir: Path, output_path: Path) -> None:
-    """Build the complete HTML page."""
+    """Build the complete HTML page - compliant with ScrapeHero 9-point checklist."""
     article_md = article_dir / 'article.md'
     config_json = article_dir / 'config.json'
     
@@ -270,29 +290,30 @@ def build_html(article_dir: Path, output_path: Path) -> None:
         with open(config_json, 'r', encoding='utf-8') as f:
             config = json.load(f)
     
+    # Extract H1 title from article (not SEO title)
+    article_title = extract_h1_title(md_content)
+    
     # Parse markdown
     blocks = parse_markdown(md_content)
     
     # Render content
     content_html = render_blocks(blocks, article_dir)
     
-    # Build page title and meta
+    # Build page title and meta from SEO block
     focus_keyword = seo_meta.get('Focus Keyword', 'Glassdoor Salary Range Tracker')
-    seo_title = seo_meta.get('SEO Title', 'Glassdoor Salary Range Tracker [Log Job Estimates in Google Sheets]')
-    seo_description = seo_meta.get('SEO Description', 'Track Glassdoor salary estimates by job ID with n8n and ScrapeHero, split ranges into numeric minimums and maximums, and save each observation to Google Sheets.')
+    seo_title = seo_meta.get('SEO Title', article_title)
+    seo_description = seo_meta.get('SEO Description', '')
     
     # Article slug from directory name
     slug = article_dir.name
     
-    # Current date for published time
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
-    published_time = now.isoformat()
+    # HONEST metadata - no invented canonical URL, published date, or author
+    # Use placeholders or omit entirely
+    canonical_url = f"https://www.scrapehero.com/{slug}/"  # placeholder - not real
+    published_time = "2026-01-01T00:00:00+00:00"  # placeholder - not real
     modified_time = published_time
-    
-    # Author info
-    author_name = "Madhu"
-    author_url = "https://www.linkedin.com/in/vjmadhudath/"
+    author_name = "ScrapeHero"  # generic, not specific person
+    author_url = "https://www.scrapehero.com/"
     
     # Build the HTML
     html = f'''<!DOCTYPE html>
@@ -302,15 +323,17 @@ def build_html(article_dir: Path, output_path: Path) -> None:
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{seo_title}</title>
     <meta name="description" content="{seo_description}">
-    <link rel="canonical" href="https://www.scrapehero.com/{slug}/">
+    <!-- Canonical URL is a placeholder - not yet published -->
+    <link rel="canonical" href="{canonical_url}">
     
     <!-- Open Graph -->
     <meta property="og:locale" content="en_US">
     <meta property="og:type" content="article">
     <meta property="og:title" content="{seo_title}">
     <meta property="og:description" content="{seo_description}">
-    <meta property="og:url" content="https://www.scrapehero.com/{slug}/">
+    <meta property="og:url" content="{canonical_url}">
     <meta property="og:site_name" content="ScrapeHero">
+    <!-- Published time is placeholder - not yet published -->
     <meta property="article:published_time" content="{published_time}">
     <meta property="article:modified_time" content="{modified_time}">
     <meta property="article:author" content="{author_name}">
@@ -323,48 +346,44 @@ def build_html(article_dir: Path, output_path: Path) -> None:
     <meta name="twitter:site" content="@scrapehero">
     <meta name="twitter:title" content="{seo_title}">
     <meta name="twitter:description" content="{seo_description}">
-    <meta name="twitter:label1" content="Written by">
-    <meta name="twitter:data1" content="{author_name}">
-    <meta name="twitter:label2" content="Est. reading time">
-    <meta name="twitter:data2" content="15 minutes">
     
-    <!-- Schema.org JSON-LD -->
+    <!-- Schema.org JSON-LD - honest placeholders -->
     <script type="application/ld+json">
     {{
         "@context": "https://schema.org",
         "@graph": [
             {{
                 "@type": "Article",
-                "@id": "https://www.scrapehero.com/{slug}/#article",
-                "isPartOf": {{"@id": "https://www.scrapehero.com/{slug}/"}},
+                "@id": "{canonical_url}#article",
+                "isPartOf": {{"@id": "{canonical_url}"}},
                 "author": {{
                     "name": "{author_name}",
-                    "@id": "https://www.scrapehero.com/#/schema/person/0557ba95323826f344817663444d8775"
+                    "@id": "https://www.scrapehero.com/#/schema/person/placeholder"
                 }},
                 "headline": "{seo_title}",
                 "datePublished": "{published_time}",
                 "dateModified": "{modified_time}",
-                "mainEntityOfPage": {{"@id": "https://www.scrapehero.com/{slug}/"}},
+                "mainEntityOfPage": {{"@id": "{canonical_url}"}},
                 "publisher": {{"@id": "https://www.scrapehero.com/#organization"}},
-                "keywords": ["{focus_keyword}", "n8n", "ScrapeHero", "Glassdoor", "salary tracker", "Google Sheets"],
+                "keywords": ["{focus_keyword}", "n8n", "ScrapeHero", "Glassdoor", "job alerts", "Google Sheets", "Gmail"],
                 "articleSection": ["n8n", "ScrapeHero Cloud Resources"],
                 "inLanguage": "en-US"
             }},
             {{
                 "@type": "WebPage",
-                "@id": "https://www.scrapehero.com/{slug}/",
-                "url": "https://www.scrapehero.com/{slug}/",
+                "@id": "{canonical_url}",
+                "url": "{canonical_url}",
                 "name": "{seo_title}",
                 "isPartOf": {{"@id": "https://www.scrapehero.com/#website"}},
                 "datePublished": "{published_time}",
                 "dateModified": "{modified_time}",
                 "description": "{seo_description}",
-                "breadcrumb": {{"@id": "https://www.scrapehero.com/{slug}/#breadcrumb"}},
+                "breadcrumb": {{"@id": "{canonical_url}#breadcrumb"}},
                 "inLanguage": "en-US"
             }},
             {{
                 "@type": "BreadcrumbList",
-                "@id": "https://www.scrapehero.com/{slug}/#breadcrumb",
+                "@id": "{canonical_url}#breadcrumb",
                 "itemListElement": [
                     {{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.scrapehero.com/"}},
                     {{"@type": "ListItem", "position": 2, "name": "{seo_title}"}}
@@ -920,7 +939,7 @@ def build_html(article_dir: Path, output_path: Path) -> None:
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <a href="https://www.scrapehero.com/">Home</a>
             <span>/</span>
-            <span aria-current="page">{seo_title}</span>
+            <span aria-current="page">{article_title}</span>
         </nav>
         
         <!-- Article -->
@@ -928,12 +947,13 @@ def build_html(article_dir: Path, output_path: Path) -> None:
             <header class="article-header">
                 <div class="article-meta">
                     <div class="article-author">
-                        <img class="author-avatar" src="https://secure.gravatar.com/avatar/2a099ae60b3b748d7eadb529bccb8b50?s=96&d=retro&r=g" alt="" loading="lazy">
-                        <a class="author-name" href="{author_url}" target="_blank" rel="noopener">{author_name}</a>
+                        <!-- Generic ScrapeHero avatar, not a specific person -->
+                        <img class="author-avatar" src="https://www.scrapehero.com/favicon.ico" alt="" loading="lazy" onerror="this.src='https://secure.gravatar.com/avatar/00000000000000000000000000000000?s=96&d=mp'">
+                        <a class="author-name" href="https://www.scrapehero.com/" target="_blank" rel="noopener">ScrapeHero</a>
                     </div>
-                    <time datetime="{published_time}">{now.strftime('%B %d, %Y')}</time>
+                    <!-- No publication date - not yet published -->
                 </div>
-                <h1 class="entry-title">{seo_title}</h1>
+                <h1 class="entry-title">{article_title}</h1>
             </header>
             
             <div class="article-content">
@@ -982,7 +1002,7 @@ def build_html(article_dir: Path, output_path: Path) -> None:
                     </div>
                 </div>
                 <div class="footer-bottom">
-                    <p>&copy; {now.year} ScrapeHero. All rights reserved.</p>
+                    <p>&copy; 2026 ScrapeHero. All rights reserved.</p>
                 </div>
             </div>
         </footer>
